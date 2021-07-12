@@ -1,0 +1,584 @@
+<template>
+	<view class="page">
+		<uni-nav-bar fixed statusBar class="high-zindex" title="商城" backgroundColor="#ed6d00" color="#fff"></uni-nav-bar>
+		<view class="con-container">
+			<view id="filter" class="filter-box">
+				<uni-search-bar
+					ref="search-bar"
+					fixed
+					statusBar
+					class="high-zindex"
+					radius="100"
+					placeholder="商品名称/编码"
+					clearButton="auto"
+					cancelButton="none"
+					@focus='searchFocus'
+					@confirm="search"
+					@clear='clear' />
+				<iFilterDropdown
+					ref='iFilterDropdown'
+					:filterData="filterData"
+					:defaultSelected="defaultSelected"
+					@confirm="confirm"
+					@reset="reset"></iFilterDropdown>
+			</view>
+			<mescroll-uni
+				ref="mescrollRef"
+				@init="mescrollInit"
+				:top="mescrollTop"
+				:safearea="true"
+				:bottom="mescrollBottom"
+				@down="downCallback"
+				:down="downOption"
+				:up="upOption"
+				@up="upCallback"
+				@scroll="scroll">
+				<view class="product-list">
+					<iProductItem @addCart="cartAdd(item)"  v-for="(item,index) in productList" :key="index" :productItem="item"></iProductItem>
+				</view>
+				<mescroll-empty v-if="productList.length==0"></mescroll-empty>
+			</mescroll-uni>
+		</view>
+		<!-- 购物车 -->
+		<iCartIcon />
+		<uni-popup id="popup" ref="popup" type="center">
+			<view class="popup-content">{{popMessage}}</view>
+		</uni-popup>
+	</view>
+</template>
+
+<script>
+import mall from '@/api/mall/mall.js'
+import iFilterDropdown from '@/components/i-filter-dropdown/i-filter-dropdown.vue';
+import iProductItem from '@/components/i-product-item/i-product-item.vue';
+import iCartIcon from '@/components/i-cart-icon/i-cart-icon.vue';
+import MescrollEmpty from '@/components/mescroll-uni/components/mescroll-empty.vue';
+
+export default {
+		name: 'mall',
+		components: {
+			iFilterDropdown,
+			iProductItem,
+			iCartIcon,
+			MescrollEmpty
+		},
+		data() {
+			return {
+			  // 查询条件
+			  searchInfo:{
+				  // 品牌编码
+				  brandNo:"",
+				  // 商品分类编码
+				  categoryNo:"",
+				  // 搜索条件
+				  searchField:"",
+				  // 商品标签编号
+				  labelNo:"",
+				  // 排序字段
+				  'pageReq.field':"",
+				  // 排序规则
+				  'pageReq.order':"",
+				  // 当前页码
+				  'pageReq.pageNum':1,
+				  // 当前页面数据量
+				  'pageReq.pageSize':10,
+			  },
+			  downOption:{
+				  auto:false
+			  },
+				upOption: {
+					onScroll:true,
+					auto:false,
+					page: {
+						size: 10
+					},
+					empty: {
+						tip: '~ 暂无数据哦 ~',
+						btnText: '去看看'
+					}
+				},
+				//过滤条件数据
+				filterData: [{
+						name: '品牌',
+						type: 'radio',
+						submenu: [{
+							name: '',
+							submenu: [{
+									name: '玛吉斯1',
+									value: '1'
+								}
+							]
+						}]
+					},
+					{
+						name: '标签',
+						type: 'filter',
+						submenu: [{
+							name: '',
+							submenu: [{
+									name: '玛吉斯1',
+									value: '1'
+								}
+							]
+						}]
+					},
+					{
+						name: '分类',
+						type: 'hierarchy',
+						submenu: [{
+								name: '玛吉斯1',
+								value: '1',
+								submenu: [{
+										name: '二级分类1',
+										value: '1'
+									},
+									{
+										name: '二级分类2',
+										value: '1'
+									},
+									{
+										name: '二级分类3',
+										value: '1'
+									},
+									{
+										name: '二级分类4',
+										value: '1'
+									},
+									{
+										name: '二级分类5',
+										value: '1'
+									},
+									{
+										name: '二级分类6',
+										value: '1'
+									},
+									{
+										name: '二级分类7',
+										value: '1'
+									},
+									{
+										name: '二级分类8',
+										value: '1'
+									},
+									{
+										name: '二级分类9',
+										value: '1'
+									},
+									{
+										name: '二级分类10',
+										value: '1'
+									}
+								]
+							}
+						]
+					},
+				],
+				//默认条件
+				defaultSelected: [],
+				//筛选结果
+				filterResult: {
+					valueArr: [],
+					labelArr: []
+				},
+				popMessage: '已成功加入购物车！',
+				mescrollTop: '158px',
+				mescrollBottom: 100,
+				productList: [],
+				originalProductList: [],
+				// 是否光标置入搜索框
+				isFocus:false
+			}
+		},
+		created() {
+			// 查询数据
+			this.listBrandAll()
+			this.listLabelAll()
+			this.listCategoryAll()
+		},
+		async mounted() {
+			this.countTopBar();
+			uni.showLoading()
+			await this.downCallback()
+		},
+		methods: {
+			/**
+			 * 切换门店重置请求
+			 */
+			refresh(){
+				// 查询数据
+				this.listBrandAll()
+				this.listLabelAll()
+				this.listCategoryAll()
+				// 查询条件
+				this.defaultSelected = []
+				// 清空标签品牌选中效果
+				this.$refs.iFilterDropdown.resetFilterDataByChangeStore(0)
+				this.$refs.iFilterDropdown.resetFilterDataByChangeStore(1)
+				this.$refs.iFilterDropdown.resetChangeStore()
+
+				this.searchInfo = {
+				  // 品牌编码
+				  brandNo:"",
+				  // 商品分类编码
+				  categoryNo:"",
+				  // 搜索条件
+				  searchField:"",
+				  // 商品标签编号
+				  labelNo:"",
+				  // 排序字段
+				  'pageReq.field':"",
+				  // 排序规则
+				  'pageReq.order':"",
+				  // 当前页码
+				  'pageReq.pageNum':1,
+				  // 当前页面数据量
+				  'pageReq.pageSize':10,
+				}
+				this.filterResult = {
+					valueArr: [],
+					labelArr: []
+				}
+				this.downCallback()
+			},
+			/**
+		   * 计算顶部DOM元素节点
+		   */
+			async countTopBar(){
+				const searchBarHeight = await this.$getComponentsDom('#filter');
+				this.mescrollTop = searchBarHeight.bottom - 5 +'px'
+			},
+
+		  /**
+		   * 分页查询产品数据
+		   */
+		  async search(value){
+				this.isFocus = false
+				uni.showLoading()
+				this.searchInfo.searchField = encodeURIComponent(value.value)
+				this.mescroll.scrollTo(0)
+				await this.downCallback()
+				uni.hideLoading()
+		  },
+
+			/**
+			 * 清空筛选
+			 */
+			async clear(){
+				this.isFocus = false
+				uni.showLoading()
+				this.searchInfo.searchField = ''
+				this.mescroll.scrollTo(0)
+				await this.downCallback()
+				uni.hideLoading()
+			},
+
+
+      /**
+       * 分页查询产品数据
+       */
+      listProductListByPage(){
+				let postData = this.searchInfo
+				this.filterResult.valueArr.map((item,index)=>{
+					switch(index){
+						// 品牌
+						case 0:
+							postData['brandNo'] = item.join(',')
+							break;
+						// 标签
+						case 1:
+							postData['labelNo'] = item.join(',')
+							break;
+						// 分类
+						case 2:
+							if(item[1]){
+								postData['categoryNo'] = item[1]
+							}else if(item[0]){
+								// postData['categoryNo'] = item[0]
+								postData['categoryNo'] = ''
+							}
+							break;
+					}
+				})
+				let payload = this.$jsonFormat(postData)
+				return new Promise((resolve,reject)=>{
+					mall.listProductListByPage(payload).then(res =>{
+						const { data } = res
+						if(!data){
+						return
+						}
+						data.records.map((item)=>{
+							item.stock = Number(item.stock)
+							let tagList = []
+							if(item.rebateRuleName && item.rebateRuleNo){
+								tagList.push('可获' + item.rebateAmount + '新玛元')
+							}
+							if(item.inteRuleName && item.inteRuleNo){
+								tagList.push('可获' + item.inteAmount + '积分')
+							}
+							item.tags = tagList
+							item.currentNum = 1
+						})
+						this.originalProductList = data.records
+						uni.hideLoading()
+						resolve(data)
+					}).catch(()=>{
+						uni.hideLoading()
+						reject()
+					})
+				})
+
+      },
+      /**
+       * 查询全部品牌
+       */
+      listBrandAll(){
+        mall.listBrandAll().then((res) =>{
+          const { data } = res
+          if(!data){
+            return
+          }
+          // 重新赋值触发页面数据渲染
+          this.filterData[0].submenu[0].submenu = data.map(item => {
+            return {
+              name: item.brandName,
+              value: item.brandNo
+            }
+          })
+        })
+      },
+      /**
+       * 查询全部标签
+       */
+      listLabelAll(){
+		let payload = {
+			// 标签类型 0-经销商 1-门店 2-商品 3-客户 4-地区
+			labelType:2
+		}
+        mall.listLabelAll(payload).then((res) =>{
+          const data = res.data
+          if(!data){
+            return
+          }
+          // 重新赋值触发页面数据渲染
+          this.filterData[1].submenu[0].submenu = data.map(item => {
+            return {
+              name: item.labelName,
+              value: item.labelNo
+            }
+          })
+        })
+      },
+			/**
+			 * 查询全部标签
+			 */
+			listCategoryAll(){
+			  mall.listCategoryAll().then((res) =>{
+			    const data = res.data
+			    if(!data){
+			      return
+			    }
+				let submenu = data.map((item)=>{
+					return {
+						name: item.categoryName,
+						value: item.categoryNo,
+						submenu:item.secondLevelCategory.map((second)=>{
+							return {
+								name: second.categoryName,
+								value: second.categoryNo,
+							}
+						})
+					}
+				})
+			    // 重新赋值触发页面数据渲染
+			    this.filterData[2].submenu = submenu
+			  })
+			},
+
+
+
+      /**
+       * 加入购物车
+       */
+      cartAdd(productInfo){
+        mall.cartAdd({itemNo:productInfo.subItemNo,itemQuantity:productInfo.currentNum || 1,isIntegralItem:false}).then(res =>{
+          if(res.code === 200){
+						this.popMessage = '已成功加入购物车！'
+            this.handleAddCart()
+          }
+        }).catch((err)=>{
+					this.popMessage = err.msg
+					this.handleAddCart()
+				})
+      },
+			handleAddCart() {
+				this.$refs.popup.open()
+				setTimeout(() => {
+					this.$refs.popup.close()
+				}, 1000)
+			},
+			/**
+			 * 接收菜单选中结果
+			 * @param {Object} e
+			 */
+			async confirm(e) {
+				uni.showLoading({
+					mask:true
+				})
+				this.filterResult.valueArr = e.value;
+				this.filterResult.labelArr = e.index;
+			  await	this.downCallback()
+				uni.hideLoading()
+			},
+
+			/**
+			 * 重置提示
+			 */
+		 async reset(){
+				uni.showLoading({
+					mask:true
+				})
+				this.filterResult = {
+					valueArr:[],
+					labelArr:[],
+				}
+				this.searchInfo = {
+					...this.searchInfo,
+					brandNo:"",
+					labelNo:"",
+					categoryNo:""
+				}
+				console.log(this.filterResult,'this.filterResult')
+			  await	this.downCallback()
+				uni.hideLoading()
+				uni.showToast({
+					title:'重置条件成功',
+					icon:"none"
+				})
+			},
+
+	async upCallback(page) {
+		let startNum = page.num + 1
+		 if(startNum === this.searchInfo['pageReq.pageNum']){
+		  	 setTimeout(()=>{
+		  		this.mescroll.endByPage(this.productList.length);
+		  	 },500)
+		  	 return
+		  }
+		  this.searchInfo['pageReq.pageNum'] = startNum
+		 // 然后追加数据
+		 let curPageData = await this.listProductListByPage()
+		//设置列表数据
+		this.productList = this.productList.concat(curPageData.records); //追加新数据
+		//联网成功的回调,隐藏下拉刷新和上拉加载的状态;
+		setTimeout(()=>{
+			this.mescroll.endByPage(curPageData.records.length);
+		},1000)
+
+	},
+			async downCallback(page){
+				// 触发更新数量视图-商城tab
+				this.$store.dispatch('app/setTriggerNumberMallTab')
+				this.searchInfo['pageReq.pageNum'] = 1
+				this.mescroll.setPageNum(1)
+				// 先触发查询
+				// this.listProductListByPage()
+				// 然后追加数据
+				let curPageData = await this.listProductListByPage()
+				//设置列表数据
+				this.productList = curPageData.records;
+				//联网成功的回调,隐藏下拉刷新和上拉加载的状态;
+				setTimeout(()=>{
+					this.mescroll.endSuccess(curPageData.records.length);
+				},1000)
+      },
+			// 滚动到指定位置,传数字 (单位px)
+			scrollToY(y) {
+				// this.mescroll.scrollTo(y) // 过渡动画时长默认300ms
+				this.mescroll.scrollTo(y, 0) // 无过渡动画
+			},
+			// 滚动到指定view,传view的id
+			scrollIntoView(viewId) {
+				// this.mescroll.scrollTo(viewId) // 过渡动画时长默认300ms
+				this.mescroll.scrollTo(viewId, 0) // 无过渡动画
+			},
+
+			/**
+			 * 搜索框焦点选中时
+			 */
+			searchFocus(){
+				this.isFocus = true
+			},
+
+			/**
+			 * 滚动监听，隐藏键盘
+			 */
+			scroll(){
+				if(this.isFocus){
+					this.isFocus = false
+					this.$refs['search-bar'].showRefs()
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.high-zindex {
+		position: relative;
+		z-index: 102;
+	}
+	.i-filter-dropdown{
+		position: relative;
+	}
+	.con-container {
+		height: calc(100% - var(--status-bar-height) - 45px);
+		overflow: hidden;
+		width: 100%;
+		position: relative;
+
+		.product-list {
+			padding: 20rpx 20rpx 0;
+		}
+
+		.cart-box {
+			position: fixed;
+			bottom: calc(120px + env(safe-area-inset-bottom));
+			right: 10px;
+			z-index: 105;
+			width: 36px;
+			height: 36px;
+			border-radius: 50%;
+			background-color: $uni-color-primary;
+			box-shadow: 0 0 5px 2px rgba(0, 0, 0, .2);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+
+			.badge {
+				position: absolute;
+				right: 4px;
+				top: 8px;
+				background-color: #f00;
+				border: 2px solid #fff;
+				width: 5px;
+				height: 5px;
+				border-radius: 50%;
+			}
+		}
+	}
+	.popup-content {
+		width: 70vw;
+		height: 100px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: rgba(0, 0, 0, 0.6);
+		border-radius: 10px;
+		color: $uni-color-primary;
+	}
+	::v-deep{
+		.mescroll-upwarp{
+			min-height: 120px;
+		}
+	}
+</style>

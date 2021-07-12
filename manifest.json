@@ -1,0 +1,201 @@
+{
+    "name" : "玛商发PCR",
+    "appid" : "__UNI__D79531E",
+    "description" : "玛吉斯门店APP",
+    "versionName" : "4.0.4",
+    "versionCode" : 40004,
+    "transformPx" : false,
+    "plus" : {
+        "kernel" : {
+            "ios" : "WKWebview"
+        }
+    },
+    "app-plus" : {
+        "kernel" : {
+            "ios" : "WKWebview"
+        },
+        /* 5+App特有相关 */
+        "usingComponents" : true,
+        "nvueCompiler" : "uni-app",
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        "modules" : {
+            "Maps" : {},
+            "OAuth" : {},
+            "Geolocation" : {},
+            "Share" : {},
+            "Push" : {}
+        },
+        /* 模块配置 */
+        "distribute" : {
+            /* 应用发布信息 */
+            "android" : {
+                /* android打包配置 */
+                "permissions" : [
+                    "<uses-feature android:name=\"android.hardware.camera\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
+                    "<uses-permission android:name=\"android.permission.INSTALL_PACKAGES\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.REQUEST_INSTALL_PACKAGES\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
+                ],
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a", "x86" ],
+                "minSdkVersion" : 21,
+                "targetSdkVersion" : 28
+            },
+            "ios" : {
+                "idfa" : false,
+                "UIBackgroundModes" : "location",
+                "privacyDescription" : {
+                    "NSLocationAlwaysAndWhenInUseUsageDescription" : "我们需要通过您的地理位置信息获取您周边商家的相关数据，以筛选出距离您最近的商家。",
+                    "NSCameraUsageDescription" : "APP需要您的同意，才能访问相机进行拍摄产品条码，如禁止将无法拍摄产品条码进行出入库操作",
+                    "NSPhotoLibraryUsageDescription" : "APP需要您的同意，才能访问相册进行选择照片上传/发布信息，如禁止将无法上传选择照片上传/发布信息",
+                    "NSMicrophoneUsageDescription" : "App需要您的同意,才能访问麦克风进行语音识别转换/录制音频，如禁止将无法识别语音转换/录制音频发送",
+                    "NSContactsUsageDescription" : "APP需要您的同意，才能访问通讯录识别用户，如禁止将无法识别用户",
+                    "NSBluetoothPeripheralUsageDescription" : "APP需要您的同意，才能访问蓝牙配对硬件，如禁止将无法配对硬件",
+                    "NSLocationAlwaysUsageDescription" : "APP需要您的同意，才能持续访问定位位置展示持续更新信息，如禁止将无法持续更新位置信息",
+                    "NSLocationWhenInUseUsageDescription" : "APP需要您的同意，才能访问定位位置展示附近信息，如禁止将无法展示附近信息",
+                    "NSPhotoLibraryAddUsageDescription" : "APP需要您的同意，才能访问相册进行照片存储，如禁止将无法存储照片"
+                }
+            },
+            /* ios打包配置 */
+            "sdkConfigs" : {
+                "maps" : {
+                    "baidu" : {
+                        "appkey_ios" : "9DwM30OCN2a1jvld7BIRWeFROi3ELZYZ",
+                        "appkey_android" : "LLGMgqyCZ1OE0dGI4Xme8jhb97kQcSlz"
+                    }
+                },
+                "ad" : {},
+                "oauth" : {},
+                "push" : {
+                    "unipush" : {}
+                },
+                "geolocation" : {
+                    "baidu" : {
+                        "__platform__" : [ "ios", "android" ],
+                        "appkey_ios" : "9DwM30OCN2a1jvld7BIRWeFROi3ELZYZ",
+                        "appkey_android" : "LLGMgqyCZ1OE0dGI4Xme8jhb97kQcSlz"
+                    }
+                },
+                "share" : {
+                    "weixin" : {
+                        "appid" : "wx9c9ab22a989947ca",
+                        "UniversalLinks" : "https://www.maxxis.com.cn/"
+                    }
+                },
+                "payment" : {}
+            },
+            "icons" : {
+                "android" : {
+                    "hdpi" : "unpackage/res/icons/72x72.png",
+                    "xhdpi" : "unpackage/res/icons/96x96.png",
+                    "xxhdpi" : "unpackage/res/icons/144x144.png",
+                    "xxxhdpi" : "unpackage/res/icons/192x192.png"
+                },
+                "ios" : {
+                    "appstore" : "unpackage/res/icons/1024x1024.png",
+                    "ipad" : {
+                        "app" : "unpackage/res/icons/76x76.png",
+                        "app@2x" : "unpackage/res/icons/152x152.png",
+                        "notification" : "unpackage/res/icons/20x20.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "proapp@2x" : "unpackage/res/icons/167x167.png",
+                        "settings" : "unpackage/res/icons/29x29.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "spotlight" : "unpackage/res/icons/40x40.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png"
+                    },
+                    "iphone" : {
+                        "app@2x" : "unpackage/res/icons/120x120.png",
+                        "app@3x" : "unpackage/res/icons/180x180.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "notification@3x" : "unpackage/res/icons/60x60.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "settings@3x" : "unpackage/res/icons/87x87.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png",
+                        "spotlight@3x" : "unpackage/res/icons/120x120.png"
+                    }
+                }
+            }
+        },
+        "android" : {
+            "hdpi" : "unpackage/res/icons/72x72.png",
+            "xhdpi" : "unpackage/res/icons/96x96.png",
+            "xxhdpi" : "unpackage/res/icons/144x144.png",
+            "xxxhdpi" : "unpackage/res/icons/192x192.png"
+        },
+        "ios" : {
+            "appstore" : "unpackage/res/icons/1024x1024.png",
+            "ipad" : {
+                "app" : "unpackage/res/icons/76x76.png",
+                "app@2x" : "unpackage/res/icons/152x152.png",
+                "notification" : "unpackage/res/icons/20x20.png",
+                "notification@2x" : "unpackage/res/icons/40x40.png",
+                "proapp@2x" : "unpackage/res/icons/167x167.png",
+                "settings" : "unpackage/res/icons/29x29.png",
+                "settings@2x" : "unpackage/res/icons/58x58.png",
+                "spotlight" : "unpackage/res/icons/40x40.png",
+                "spotlight@2x" : "unpackage/res/icons/80x80.png"
+            },
+            "iphone" : {
+                "app@2x" : "unpackage/res/icons/120x120.png",
+                "app@3x" : "unpackage/res/icons/180x180.png",
+                "notification@2x" : "unpackage/res/icons/40x40.png",
+                "notification@3x" : "unpackage/res/icons/60x60.png",
+                "settings@2x" : "unpackage/res/icons/58x58.png",
+                "settings@3x" : "unpackage/res/icons/87x87.png",
+                "spotlight@2x" : "unpackage/res/icons/80x80.png",
+                "spotlight@3x" : "unpackage/res/icons/120x120.png"
+            }
+        },
+        "nativePlugins" : {}
+    },
+    /* SDK配置 */
+    "quickapp" : {},
+    /* 快应用特有相关 */
+    "mp-weixin" : {
+        /* 小程序特有相关 */
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false
+        },
+        "usingComponents" : true
+    },
+    "h5" : {
+        "devServer" : {
+            "port" : 8000,
+            "disableHostCheck" : true,
+            "proxy" : {
+                "/api" : {
+                    "target" : "https://mall.maxxis.com.cn/api",
+                    "changeOrigin" : true,
+                    "secure" : false,
+                    "pathRewrite" : {
+                        "^/api" : ""
+                    }
+                }
+            },
+            "https" : false
+        }
+    }
+}

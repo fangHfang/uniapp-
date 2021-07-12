@@ -1,0 +1,234 @@
+{
+	"pages": [{
+		"path": "pages/login/login"
+	},{
+		"path": "pages/login/register"
+	},{
+		"path": "pages/index/index",
+		"style": {
+			"navigationBarTitleText": "玛商发PCR",
+			"bounce": "none"
+		}
+	},{
+		"path": "pages/webview/webview",
+		"style": {
+			"app-plus": {
+				"titleNView": {
+					"buttons": [{
+						"type": "close",
+						"float": "left",
+						"color": "#FFFFFF"
+					}]
+				}
+			}
+		}
+	},{
+		"path": "pages/my-pages/system/system"
+	},{
+		"path": "pages/my-pages/system/about-us/aboutUs"
+	},{
+		"path": "pages/my-pages/system/about-us/update-list/updateList"
+	},{
+		"path": "pages/my-pages/system/about-us/update-detail/updateDetail"
+	},{
+		"path": "pages/my-pages/modify/modify-num"
+	},{
+		"path": "pages/my-pages/contract/contract"
+	},{
+		"path": "pages/my-pages/contract/contract-detail/contract-detail"
+	},{
+		"path": "pages/my-pages/mall/mall"
+	},{
+		"path": "pages/my-pages/mall/detail/mall-detail"
+	},{
+		"path": "pages/my-pages/address/list"
+	},{
+		"path": "pages/my-pages/address/edit"
+	},{
+		"path": "pages/my-pages/wallet/wallet"
+	},{
+		"path": "pages/my-pages/wallet/rebate/rebate"
+	},{
+        "path": "pages/my-pages/wallet/integral/integral"
+	},{
+		"path": "pages/my-pages/wallet/quota/quota"
+	},{
+		"path": "pages/my-pages/order/list/order-list"
+	},{
+		"path": "pages/my-pages/order/search/order-search"
+	},{
+		"path": "pages/my-pages/order/detail/order-detail"
+	},{
+		"path": "pages/my-pages/order/code/order-code"
+	},{
+		"path": "pages/my-pages/integral/list/integral-list"
+	},{
+		"path": "pages/my-pages/integral/search/integral-search"
+	},{
+		"path": "pages/my-pages/integral/detail/integral-detail"
+	},{
+		"path": "pages/my-pages/activity/list/activity-list"
+	},{
+		"path": "pages/my-pages/activity/search/activity-search"
+	},{
+		"path": "pages/my-pages/activity/detail/activity-detail"
+	},{
+		"path": "pages/my-pages/activity/code/activity-code"
+	},{
+		"path": "pages/my-pages/exchange/exchange"
+	},{
+		"path": "pages/my-pages/reserve/reserve"
+	},{
+		"path": "pages/my-pages/exchange/exchange-details/exchange-details"
+	},{
+		"path": "pages/my-pages/coupon/coupon"
+	},{
+		"path": "pages/my-pages/coupon/exchange-goods/exchange-goods-list"
+	},{
+		"path": "pages/my-pages/staff/staff"
+	},{
+		"path": "pages/my-pages/system/location/list/list"
+	},{
+		"path": "pages/my-pages/system/location/edit/edit"
+	},{
+		"path": "pages/community/detail/communityDetail"
+	},{
+		"path": "pages/community/help/list/list"
+	},{
+		"path": "pages/community/help/add/add"
+	},{
+		"path": "pages/community/help/detail/detail"
+	},{
+		"path": "pages/community/post/post"
+	},{
+		"path": "pages/community/history/list/list"
+	},{
+		"path": "pages/work/com/barcode"
+	},{
+		"path": "pages/work/applet/applet"
+	},{
+		"path": "pages/work/warehousing/list"
+	},{
+		"path": "pages/work/warehousing/detail"
+	},{
+		"path": "pages/work/warehousing/fail"
+	},{
+		"path": "pages/work/warehousing/order-list"
+	},{
+		"path": "pages/work/delivery/index"
+	},{
+		"path": "pages/work/delivery/list"
+	},{
+		"path": "pages/work/delivery/detail"
+	},{
+		"path": "pages/work/verification/index"
+	},{
+		"path": "pages/work/sign/sign"
+	},{
+		"path": "pages/work/return/list"
+	},{
+		"path": "pages/work/return/detail"
+	},{
+		"path": "pages/work/return/add"
+	},{
+		"path": "pages/work/inspection/list"
+	},{
+		"path": "pages/work/inspection/detail"
+	},{
+		"path": "pages/work/inspection/history"
+	},{
+		"path": "pages/work/market/market"
+	},{
+		"path": "pages/work/renew/list/renew-list"
+	},{
+		"path": "pages/work/renew/detail/order-detail"
+	},{
+		"path": "pages/work/renew/run-ease/renew-ease"
+	},{
+		"path": "pages/work/renew/run-ease/example"
+	},{
+		"path": "pages/work/renew/detail/renew-detail"
+	},{
+		"path": "pages/work/order/list/order-list"
+	},{
+		"path": "pages/work/order/detail/order-detail"
+	},{
+		"path": "pages/work/history/history"
+	},{
+		"path": "pages/products/product-list/product-list"
+	},{
+		"path": "pages/products/product-search/product-search"
+	}, {
+		"path": "pages/products/product-detail/product-detail",
+		"style": {
+			"navigationBarTitleText": "详情展示",
+			"app-plus": {
+				"titleNView": {
+					"type": "transparent"
+				}
+			}
+		}
+	}, {
+		"path": "pages/products/shopping-cart/shopping-cart"
+	},{
+		"path": "pages/products/order/confirm"
+	},{
+		"path": "pages/products/order/confirmIntegral"
+	},{
+		"path": "pages/products/order/confirmExchange"
+	},{
+		"path": "pages/products/order/pay",
+		"style":{
+			"app-plus": {
+				"popGesture": "none"  
+			}
+		}
+	},{
+		"path": "pages/products/order/paying"
+	},{
+		"path": "pages/products/order/result"
+	},{
+		"path": "pages/products/order/resultIntegral"
+	},{
+		"path": "pages/products/order/resultExchange"
+	},{
+		"path": "pages/deadline/seckill/list/seckill-list"
+	},{
+		"path": "pages/deadline/seckill/detail/seckill-detail"
+	},{
+		"path": "pages/deadline/seckill/other-detail/snap-up-detail"
+	},{
+		"path": "pages/deadline/seckill/combination/combination-detail"
+	},{
+		"path": "pages/deadline/seckill/combination/combination-detail-optional"
+	},{
+		"path": "pages/deadline/product/product-deadline-detail",
+		"style": {
+			"navigationBarTitleText": "详情展示",
+			"app-plus": {
+				"titleNView": {
+					"type": "transparent"
+				}
+			}
+		}
+	},{
+		"path": "pages/advertisement/list/advertisement-list"
+	},{
+		"path": "pages/advertisement/detail/advertisement-detail"
+	},{
+		"path": "pages/my-pages/clause/service"
+	},{
+		"path": "pages/my-pages/clause/privacy"
+	}],
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "玛商发PCR",
+		"navigationBarBackgroundColor": "#ff5a1e",
+		"backgroundColor": "#f2f2f2",
+		"app-plus": {
+			"background": "#f2f2f2",
+			"bounce": "none"
+		}
+	}
+}

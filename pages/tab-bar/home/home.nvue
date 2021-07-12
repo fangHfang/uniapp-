@@ -1,0 +1,1274 @@
+<template>
+	<view>
+
+		<view class="page">
+			<view class="bg-color"></view>
+			<!-- 电池条 -->
+			<view class="status-bar-placeholder" />
+			<view id="topBar">
+				<!-- 搜索栏 -->
+				<view class="flex search-box">
+					<view class="search-mask" @tap="searchFocus"></view>
+					<uni-search-bar class="search-bar" placeholder="商品名称/编码" @confirm="" @input="" :radius="20" type=""
+						cancelButton="none" @focus="" />
+					<icon class="iconfont xiaoxi" :class="hasUnreadNotice?'new-message':''"
+						style='color:#ffffff;font-size: 44rpx;' type="" @click="toAdvertisement"></icon>
+				</view>
+			</view>
+
+			<mescroll-uni ref="mescrollRef" @init="mescrollInit" class="mescroll-uni" :top="pageOptions.mescrollTop"
+				:bottom="pageOptions.mescrollBottom" :up="upOption" :down="downOption" safearea @down="downCallback"
+				@up="upCallback">
+				<view class="bg-box">
+					<!-- 入库 签到 出库 -->
+					<view class="in-out-box flex">
+						<view class="in-stock" @click="toScan">
+							<image loading-ing-img="oblique-light" src="@/static/image/home/ruku.png" mode=""></image>
+							<text>扫码入库</text>
+						</view>
+						<view class="sign-in" @click="toSign">
+							<image loading-ing-img="oblique-light" src="@/static/image/home/qiandao.png" mode="">
+							</image>
+							<text>签到</text>
+						</view>
+						<view class="out-stock" @click="toDelivery">
+							<image loading-ing-img="oblique-light" src="@/static/image/home/chuku.png" mode=""></image>
+							<text>安心出库</text>
+						</view>
+					</view>
+					<!-- 背景图 -->
+					<!-- 	<view class="bg-image-box">
+					<fr-image loading-ing-img="oblique-light"  src="@/static/image/home/bg.png" ></fr-image>
+				</view> -->
+					<!-- 轮播图 -->
+					<view class="uni-padding-wrap">
+						<view class="page-section swiper">
+							<view class="page-section-spacing">
+								<swiper class="swiper" :indicator-dots="topBannerOption.indicatorDots"
+									:autoplay="topBannerOption.autoplay" :interval="topBannerOption.interval"
+									:indicator-color="topBannerOption.indicatorColor"
+									:indicator-active-color="topBannerOption.indicatorActiveColor"
+									:previous-margin="topBannerOption.previousMargin"
+									:next-margin="topBannerOption.nextMargin" :current="topBannerOption.current"
+									@change="changeTopBannerCurrent" circular>
+									<swiper-item v-for="(item,index) in topBannerList" :class="{
+									'no-ative':topBannerOption.current !== index,
+									'active':topBannerOption.current === index}" :key="'topBannerList-' + index">
+										<view style="width: 100%;height: 100%;" @click="navigateToDetail(item.detail)">
+											<fr-image loading-ing-img="oblique-light" class="swiper-top-image"
+												:src="item.detail && item.detail.imgUrl"></fr-image>
+										</view>
+
+									</swiper-item>
+								</swiper>
+							</view>
+						</view>
+					</view>
+					<!-- 限时秒杀 -->
+					<view class="uni-padding-wrap">
+						<view class="page-section swiper">
+							<view class="page-section-spacing flex a-center j-center">
+								<view v-for="(item,index) in horizontalList" :key="index"
+									@click="navigateToDetail(item.detail)">
+									<fr-image loading-ing-img="oblique-light" src="@/static/image/home/miaosha.png"
+										style="width:calc(100vw - 40rpx);height: 200rpx;"
+										:src="item.detail && item.detail.imgUrl" mode="widthFix"></fr-image>
+								</view>
+							</view>
+						</view>
+					</view>
+					<!-- 品类 -->
+					<view class="category-box">
+						<view class="category-item" v-for="(item,index) in categoryList" :key="'categoryList-' + index"
+							@click="navigateToDetail(item.detail)">
+							<fr-image loading-ing-img="oblique-light" :src="item.detail && item.detail.imgUrl"
+								style="width:90rpx;height:90rpx;"></fr-image>
+							<text>{{item.detail && item.detail.linkName}}</text>
+						</view>
+					</view>
+
+					<view class="display-box" v-for="(item,index) in displayResult" :key="index">
+						<!-- 热销产品 -->
+						<view class="hot-product flex" v-if="item.displayShowMoreItem || item.displayName">
+							<view class="hot-left">
+								<view class="zkfont-box">
+									<text class="zkfont red">{{item.firstName}}</text>
+									<text class="zkfont">{{item.sedName}}</text>
+								</view>
+								<icon v-if="item.displayName==='热销产品'" class="iconfont hot"
+									style='color:#ed6d00;font-size: 44rpx;margin-left: 7rpx;' type=""></icon>
+							</view>
+							<view v-if="item.displayShowMoreItem" class="hot-right" @click="navigateToMall(item)">
+								<text>全部产品</text>
+								<icon class="iconfont right" style='color:#ed6d00;font-size: 16rpx;' type=""></icon>
+							</view>
+						</view>
+
+						<template v-if="item.displayType === 1">
+							<view class="product-list">
+								<view v-for="(v,k) in item.detailDTOList" :key="'product-item-' + k"
+									class="product-item one-item" @click="navigateToDetail(v)">
+									<fr-image loading-ing-img="oblique-light" :class="showClass(v)" :src="v.imgUrl"
+										alt=""></fr-image>
+									<view class="product-info" v-if="showProductInfo(v)">
+										<view class="product-info-top">
+											<text class="product-name">{{v.itemInfo.name}}</text>
+											<text v-if="v.itemInfo.stockDisplay"
+												class="product-brand">库存：{{v.itemInfo.stockDisplay}}</text>
+											<text v-else class="product-brand">库存：{{v.itemInfo.stock}}</text>
+										</view>
+										<text class="product-price">￥{{v.itemInfo.price}}</text>
+									</view>
+								</view>
+							</view>
+						</template>
+						<template v-if="item.displayType === 3">
+							<!-- 底部banner图 -->
+							<view class="bottom-banner" @click="navigateToDetail(item.detailDTOList[0])">
+								<fr-image loading-ing-img="oblique-light" :src="item.detailDTOList[0].imgUrl" mode="">
+								</fr-image>
+							</view>
+							<view class="product-list">
+								<view v-for="(v,k) in item.detailDTOList.slice(1)" :key="'product-item-' + k"
+									class="product-item two-item" @click="navigateToDetail(v)">
+									<fr-image loading-ing-img="oblique-light" :class="showClass(v)" :src="v.imgUrl"
+										alt=""></fr-image>
+									<view class="product-info" v-if="showProductInfo(v)">
+										<view class="product-info-top">
+											<text class="product-name">{{v.itemInfo.name}}</text>
+											<text v-if="v.itemInfo.stockDisplay"
+												class="product-brand">库存：{{v.itemInfo.stockDisplay}}</text>
+											<text v-else class="product-brand">库存：{{v.itemInfo.stock}}</text>
+										</view>
+										<text class="product-price">￥{{v.itemInfo.price}}</text>
+									</view>
+								</view>
+							</view>
+							<!-- 底部产品列表 -->
+						</template>
+						<template v-if="item.displayType === 4">
+							<view class="product-list">
+								<view v-for="(v,k) in item.detailDTOList" :key="'product-item-' + k"
+									class="product-item two-item" @click="navigateToDetail(v)">
+									<fr-image loading-ing-img="oblique-light" :class="showClass(v)" :src="v.imgUrl"
+										alt=""></fr-image>
+									<view class="product-info" v-if="showProductInfo(v)">
+										<view class="product-info-top">
+											<text class="product-name">{{v.itemInfo.name}}</text>
+											<text v-if="v.itemInfo.stockDisplay"
+												class="product-brand">库存：{{v.itemInfo.stockDisplay}}</text>
+											<text v-else class="product-brand">库存：{{v.itemInfo.stock}}</text>
+										</view>
+										<text class="product-price">￥{{v.itemInfo.price}}</text>
+									</view>
+								</view>
+							</view>
+						</template>
+						<template v-if="item.displayType === 6">
+							<view class="product-list">
+								<view v-for="(v,k) in item.detailDTOList" :key="'product-item-' + k"
+									class="product-item three-item" @click="navigateToDetail(v)">
+									<fr-image loading-ing-img="oblique-light" :class="showClass(v)" :src="v.imgUrl"
+										alt=""></fr-image>
+									<view class="product-info" v-if="showProductInfo(v)">
+										<view class="product-info-top">
+											<text class="product-name">{{v.itemInfo.name}}</text>
+											<text v-if="v.itemInfo.stockDisplay"
+												class="product-brand">库存：{{v.itemInfo.stockDisplay}}</text>
+											<text v-else class="product-brand">库存：{{v.itemInfo.stock}}</text>
+										</view>
+										<text class="product-price">￥{{v.itemInfo.price}}</text>
+									</view>
+								</view>
+							</view>
+						</template>
+					</view>
+				</view>
+			</mescroll-uni>
+		</view>
+		<mask-popup
+			ref="homePopup"
+			v-show="isContract || isCheck || isRegister || isShowAdvert || isShowCoupon"
+			:isRegister="isRegister"
+			:isCheck="isCheck"
+			:isContract="isContract"
+			:regGiftList="regGiftList"
+			:inspectList="inspectList"
+			:contractList="contractList"
+			:isShowAdvert="isShowAdvert"
+			:advertList="advertList"
+			:isShowCoupon="isShowCoupon"
+			:couponList="couponList"
+		></mask-popup>
+		<!-- 权限弹窗 -->
+		<yu-toast :message1="powerData.msg1" :message2="powerData.msg2" :duration="powerData.duration"
+			verticalAlign="center" :backgroundColor="powerData.bgColor" :color="powerData.fontColor" ref="power">
+		</yu-toast>
+	</view>
+</template>
+
+<script>
+	import {
+		mapState
+	} from 'vuex'
+	import maskPopup from "./mask/index.vue"
+	import home from "@/api/home/home.js";
+	import mall from '@/api/mall/mall.js'
+	import system from '@/api/system/system.js'
+	import yuToast from '@/components/yu-toast/yu-toast'
+	export default {
+		name: 'home',
+		components: {
+			maskPopup
+		},
+		data() {
+			return {
+				systemInfo: uni.getSystemInfoSync(),
+				// 顶部banner图配置
+				topBannerOption: {
+					// 显示指示点
+					indicatorDots: true,
+					// 自动轮播
+					autoplay: true,
+					// 间隔时长
+					interval: 5000,
+					// 指示点颜色
+					indicatorColor: 'rgba(255, 255, 255, .5)',
+					// 当前选中-指示点颜色
+					indicatorActiveColor: '#ffffff',
+					// 前边距
+					previousMargin: '20rpx',
+					// 后边距
+					nextMargin: '20rpx',
+					// 当前显示下标
+					current: 0
+				},
+				// 顶部banner图-数据集合
+				topBannerList: [],
+				// 顶部banner图配置
+				horizontalOption: {
+					// 显示指示点
+					indicatorDots: true,
+					// 自动轮播
+					autoplay: true,
+					// 间隔时长
+					interval: 2000,
+					// 指示点颜色
+					indicatorColor: 'rgba(255, 255, 255, .5)',
+					// 当前选中-指示点颜色
+					indicatorActiveColor: '#ffffff',
+					// 前边距
+					previousMargin: '20rpx',
+					// 后边距
+					nextMargin: '20rpx',
+					// 当前显示下标
+					current: 0
+				},
+				// 横幅
+				horizontalList: [],
+				// 品类集合
+				categoryList: [{
+						src: require('@/static/image/home/1.png'),
+						title: "年货盛典"
+					},
+				],
+				// 是否显示广告位
+				isShowAdvert:false,
+				// 广告位
+				advertList:[],
+				// 底部banner图-数据
+				bottomBanner: require('@/static/image/home/banner2.png'),
+				// 底部产品列表数据
+				displayResult: [],
+				// 回到顶部按钮配置
+				upOption: {
+					auto: true,
+					page: {
+						size: 10
+					},
+					noMoreSize: 1,
+					toTop: {
+						src: require('@/static/image/home/top.png'),
+						safearea: true
+					},
+					textNoMore:"-- 已经到底了 --"
+
+				},
+				// 下拉刷新配置项
+				downOption: {
+					auto: false,
+					textColor: '#fff'
+				},
+				// 下拉刷新组件实例
+				mescroll: null,
+				// 页面配置
+				pageOptions: {
+					// 产品显示多少列
+					productColumnNumber: 3,
+					// 适配刘海屏
+					mescrollTop: '70px',
+					mescrollBottom: 100,
+				},
+				//未读消息
+				hasUnreadNotice: false,
+				isRegister: false,
+				// 注册礼包
+				regGiftList: [],
+				// 店检
+				isCheck: false,
+				// 店检进度列表
+				inspectList: [],
+				//签约
+				isContract: false,
+				//签约列表
+				contractList: [],
+				// 权限提示
+				powerData: {
+					msg1: '您没有权限,',
+					msg2: '请开通相应权限。',
+					duration: 2000,
+					bgColor: "#000000cc",
+					fontColor: "#ed6d00",
+				},
+				//是否展示优惠券弹框
+				isShowCoupon:false,
+				//优惠券弹框列表
+				couponList:[{
+					price:100,
+					name:'优惠券名称',
+					couponClass:1, //优惠券类型(0:消费券,1:兑换券)
+					desc:'满1000使用 可叠加',
+					startTime:'2021-08-09',
+					endTime:'2021-09-09'
+				},{
+					price:100,
+					name:'优惠券名称',
+					couponClass:1, //优惠券类型(0:消费券,1:兑换券)
+					desc:'满1000使用 可叠加',
+					startTime:'2021-08-09',
+					endTime:'2021-09-09'
+				},{
+					price:100,
+					name:'优惠券名称',
+					couponClass:1, //优惠券类型(0:消费券,1:兑换券)
+					desc:'满1000使用 可叠加',
+					startTime:'2021-08-09',
+					endTime:'2021-09-09'
+				},{
+					price:100,
+					name:'优惠券名称',
+					couponClass:1, //优惠券类型(0:消费券,1:兑换券)
+					desc:'满1000使用 可叠加',
+					startTime:'2021-08-09',
+					endTime:'2021-09-09'
+				},{
+					price:100,
+					name:'优惠券名称',
+					couponClass:1, //优惠券类型(0:消费券,1:兑换券)
+					desc:'满1000使用 可叠加',
+					startTime:'2021-08-09',
+					endTime:'2021-09-09'
+				},{
+					price:100,
+					name:'优惠券名称',
+					couponClass:1, //优惠券类型(0:消费券,1:兑换券)
+					desc:'满1000使用 可叠加',
+					startTime:'2021-08-09',
+					endTime:'2021-09-09'
+				}]
+			}
+		},
+		computed: {
+			...mapState({
+				// 权限集合
+				resourceList: state => state.login.resourceList
+			}),
+		},
+		created() {
+			this.initPage()
+		},
+		mounted() {
+			// #ifdef APP-PLUS
+			console.log(plus.runtime)
+			// #endif
+			this.countTopBar();
+			// setTimeout(() => {
+			// 	this.$refs.homePopup.openPopup()
+			// }, 20)
+		},
+		methods: {
+			/**
+			 * 初始化页面需求请求方法
+			 */
+			initPage() {
+				// 查询积分商品购物车
+				this.$store.dispatch('integral/getIntegralCartList')
+				// 查询用户信息
+				this.$store.dispatch('login/updateUserInfo')
+				//新店注册礼包
+				this.getRegisterGiftList()
+				// 查询默认收货地址
+				this.getDefaultAddress()
+				//轮播图
+				this.bannerList();
+				//横幅
+				this.horizontalQueryList();
+				this.navigationList();
+				// 广告位
+				this.getAdvertList();
+				//橱窗
+				// this.displayList();
+				//#ifdef APP-PLUS
+				// 推送clientid到后台
+				this.$store.dispatch('login/uniPushCid')
+				//#endif
+				//店检
+				this.queryInspect()
+				//签约
+				this.queryContract()
+			},
+
+			/**
+			 * 新店注册礼包
+			 */
+			getRegisterGiftList() {
+				home.getRegPkgList().then((res) => {
+					if (res.code === 200) {
+						this.regGiftList = res.data;
+						this.isRegister = (res.data || []).length > 0
+						setTimeout(() => {
+							this.$refs.homePopup.openPopup()
+						}, 20)
+					}
+				}).catch((error) => {});
+			},
+			/**
+			 * 签约
+			 */
+			queryContract() {
+				// #ifdef APP-PLUS
+				let contractTime = plus.storage.getItem('contractTime')
+				// #endif
+				// #ifdef H5
+				let contractTime = window.localStorage.getItem('contractTime');
+				// #endif
+				console.log('contract---' + contractTime)
+				if (!contractTime) {
+					this.getContractList()
+				} else {
+					let today = new Date().getMonth() + '/' + new Date().getDate()
+					if (today !== contractTime) {
+						this.getContractList()
+					}
+				}
+			},
+			/**
+			 * 签约截止弹框列表
+			 */
+			getContractList() {
+				system.getSummaryRequired().then((res) => {
+					if (res.code === 200) {
+						this.contractList = (res.data) || [];
+						this.isContract = this.contractList.length > 0
+						setTimeout(() => {
+							this.$refs.homePopup.openPopup()
+						}, 20)
+					}
+				}).catch((error) => {});
+			},
+			/**
+			 * 店检
+			 */
+			queryInspect() {
+				// #ifdef APP-PLUS
+				let inspectTime = plus.storage.getItem('inspectTime')
+				// #endif
+				// #ifdef H5
+				let inspectTime = window.localStorage.getItem('inspectTime');
+				// #endif
+				console.log('inspect---' + inspectTime)
+				if (!inspectTime) {
+					this.getInspectList()
+				} else {
+					let today = new Date().getMonth() + '/' + new Date().getDate()
+					if (today !== inspectTime) {
+						this.getInspectList()
+					}
+				}
+			},
+			/**
+			 * 店检截止弹框列表
+			 */
+			getInspectList() {
+				let params = {
+					"pageReq": {
+						"pageNum": 1,
+						"pageSize": 10
+					}
+				}
+				home.getInspectScheduleList(params).then((res) => {
+					if (res.code === 200) {
+						this.inspectList = (res.data && res.data.records) || [];
+						this.isCheck = this.inspectList.length > 0
+						setTimeout(() => {
+							this.$refs.homePopup.openPopup()
+						}, 20)
+					}
+				}).catch((error) => {});
+			},
+			/**
+			 * 获取未读公告消息
+			 */
+			getNoticeUnreadNumber() {
+				let postData = {
+					pageReq: {
+						pageNum: 1,
+						pageSize: 10
+					}
+				}
+				home.getNoticeList(postData).then((res) => {
+					if (res.code === 200) {
+						let list = (res.data.records || []).filter(x => x.status === 1 && x.readStatus === 0)
+						if (list.length > 0) {
+							this.hasUnreadNotice = true
+						} else {
+							this.hasUnreadNotice = false
+						}
+					} else {}
+				})
+			},
+			/**
+			 * 轮播图
+			 */
+			bannerList() {
+				home.bannerList({}).then((res) => {
+					if (res.code === 200) {
+						this.topBannerList = res.data;
+					}
+				}).catch((error) => {});
+			},
+			/**
+			 * 横幅
+			 */
+			horizontalQueryList() {
+				home.horizontalList({}).then((res) => {
+					this.horizontalList = res.data;
+				}).catch((err) => {})
+			},
+			/**
+			 * 子导航
+			 */
+			navigationList() {
+				home.navigationList({}).then((res) => {
+					this.categoryList = res.data;
+				}).catch((err) => {})
+			},
+			/**
+			 * 查询广告位
+			 */
+			getAdvertList() {
+				home.advertList({}).then((res) => {
+					let list = res.data
+					let alreadyShowAdvert = uni.getStorageSync('alreadyShowAdvert')
+					if(list.length > 0){
+						// 每次打开弹出
+						if(list[0].popRule == 0){
+							this.isShowAdvert = list.length > 0
+							this.advertList = list;
+							setTimeout(() => {
+								this.$refs.homePopup.openPopup()
+							}, 20)
+						}else{
+							// 弹出过了
+							if(alreadyShowAdvert){
+								this.isShowAdvert = false
+							}else{
+							// 未弹过
+								uni.setStorageSync('alreadyShowAdvert',true)
+								this.isShowAdvert = list.length > 0
+								this.advertList = list;
+								setTimeout(() => {
+									this.$refs.homePopup.openPopup()
+								}, 20)
+							}
+						}
+					}
+				}).catch((err) => {})
+			},
+
+			/**
+			 * 跳转链接
+			 * @param {Object} item
+			 */
+			navigateToDetail(item) {
+				if (item && item.linkUrl) {
+					if (~(item.linkUrl + '').indexOf('pages/')) {
+						uni.navigateTo({
+							url: item.linkUrl
+						})
+					} else if (~(item.linkUrl + '').indexOf('http')) {
+						uni.navigateTo({
+							url: '/pages/webview/webview?webUrl=' + encodeURIComponent((item.linkUrl + ''))
+						})
+					}
+				}
+			},
+			/**
+			 * 跳转全部产品
+			 */
+			navigateToMall(row) {
+				const {
+					pictureNo,
+					displayNo
+				} = row
+				if (pictureNo && displayNo) {
+					uni.navigateTo({
+						url: '/pages/products/product-list/product-list?pictureNo=' + pictureNo + '&displayNo=' +
+							displayNo
+					})
+				} else {
+					uni.showToast({
+						title: "出了点问题",
+						icon: "none"
+					})
+				}
+
+			},
+			/**
+			 * 橱窗
+			 */
+			async displayList(num) {
+				let params = {
+					...this.params,
+					'page.num': num,
+					'page.pageSize': this.upOption.page.size
+				}
+				let res = await home.displayList({})
+				if (res.code === 200) {
+					return res.data
+				} else {
+					uni.showToast({
+						title: '查询橱窗失败，请稍后再试',
+						icon: 'none',
+						duration: 2000
+					});
+					return null
+				}
+			},
+			/**
+			 * 计算顶部DOM元素节点
+			 */
+			async countTopBar() {
+				const searchBarHeight = await this.$getComponentsDom('#topBar');
+				this.pageOptions.mescrollTop = (searchBarHeight && searchBarHeight.bottom || 70) + 'px'
+			},
+
+			/**
+			 * 初始化回调方法
+			 * @param {Object} mescroll
+			 */
+			mescrollInit(mescroll) {
+				this.mescroll = mescroll
+			},
+			/**
+			 * 上拉加载的回调:
+			 * 其中page.num:当前页 从1开始,
+			 * page.size:每页数据条数,默认10
+			 */
+			async upCallback(page) {
+				let data = await this.displayList(page.num)
+				if (data) {
+					let curPageData = data
+					this.displayResult = this.displayResult.concat(curPageData);
+					this.displayResult.forEach((item, index) => {
+						const displayName = this.displayResult[index].displayName
+						item.firstName = displayName && displayName.substring(0, 2)
+						item.sedName = displayName && displayName.substring(2)
+					})
+					this.mescroll.endSuccess(curPageData.length);
+				}
+			},
+			/**
+			 * 下拉刷新回调
+			 */
+			async downCallback(page) {
+				//轮播图
+				this.bannerList();
+				//横幅
+				this.horizontalQueryList();
+				this.navigationList();
+				this.getNoticeUnreadNumber()
+				let data = await this.displayList(1)
+				if (data) {
+					let curPageData = data
+					this.displayResult = curPageData
+					this.displayResult.forEach((item, index) => {
+						const displayName = this.displayResult[index].displayName
+						item.firstName = displayName && displayName.substring(0, 2)
+						item.sedName = displayName && displayName.substring(2)
+					})
+					setTimeout(() => {
+						this.mescroll.endSuccess(curPageData.length);
+					}, 500)
+				}
+			},
+			/**
+			 * 顶部banner图下标切换
+			 * @param {Object} e
+			 */
+			changeTopBannerCurrent(e) {
+				this.topBannerOption.current = e.detail.current
+			},
+
+			/**
+			 * 跳转页面
+			 * @param {Object} url
+			 */
+			navTo(url) {
+				uni.navigateTo({
+					url
+				})
+			},
+			/**
+			 * 扫码入库
+			 * 扫码入库-STOREAPPA0301
+			 */
+			toScan() {
+				if (!this.resourceList.some((item) => {
+						return item.resourceNo === 'STOREAPPA0301'
+					})) {
+					this.$refs.power.show()
+					return
+				}
+				const obj = {
+					name: '扫码入库',
+					dec: '请对条码进行核销',
+					api: '',
+					rightIconUrl: '/pages/work/warehousing/list',
+					// 扫码页 手动输入条码后 要跳转的指定页面
+					// 默认可不传（不传 则navigateBack)
+					confirmTo: '/pages/work/warehousing/detail',
+					failTo: ''
+				}
+				uni.navigateTo({
+					url: `/pages/work/com/barcode?name=${obj.name}&dec=${obj.dec}&api=${obj.api}&&rightIconUrl=${obj.rightIconUrl}&confirmTo=${obj.confirmTo}`
+				})
+			},
+			/**
+			 * 签到
+			 * 签到-STOREAPPA0102
+			 */
+			toSign() {
+				if (!this.resourceList.some((item) => {
+						return item.resourceNo === 'STOREAPPA0102'
+					})) {
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/work/sign/sign'
+				})
+			},
+			/**
+			 * 安心出库
+			 * 安心出库-STOREAPPA0302
+			 */
+			toDelivery() {
+				if (!this.resourceList.some((item) => {
+						return item.resourceNo === 'STOREAPPA0302'
+					})) {
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/work/delivery/index'
+				})
+			},
+			/**
+			 * 打开查看公告列表页
+			 * 短信-STOREAPPA0101
+			 */
+			toAdvertisement() {
+				if (!this.resourceList.some((item) => {
+						return item.resourceNo === 'STOREAPPA0101'
+					})) {
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/advertisement/list/advertisement-list'
+				})
+			},
+
+			/**
+			 * 输入框聚焦事件
+			 */
+			searchFocus() {
+				uni.navigateTo({
+					url: '/pages/products/product-search/product-search'
+				})
+			},
+
+			/**
+			 * 查询默认收货地址，并存入缓存
+			 */
+			getDefaultAddress() {
+				mall.listAddressAll().then(res => {
+					let defaultAddress = res.data.find((item) => {
+						return item.isDefault === 0
+					})
+					if (defaultAddress) {
+						// 将 地址 存储在本地缓存中指定的 key 中
+						uni.setStorageSync('address', defaultAddress);
+					} else {
+						uni.setStorageSync('address', "");
+					}
+				}).catch((err) => {
+					uni.setStorageSync('address', "");
+					console.log('查询地址失败')
+				})
+			},
+
+
+			/**
+			 * 返回需要的class名称
+			 * 2-套餐商品，5-单独商品返回显示商品信息，其余只展示图片
+			 */
+			showClass(item) {
+				const {
+					linkType
+				} = item
+				let className = 'product-full-image'
+				if (linkType === 2 || linkType === 5) {
+					className = 'product-image'
+				}
+				return className
+			},
+
+			/**
+			 * 是否展示产品信息
+			 * 2-套餐商品，5-单独商品展示，其余不展示
+			 */
+			showProductInfo(item) {
+				const {
+					linkType
+				} = item
+				let show = false
+				if (linkType === 2 || linkType === 5) {
+					show = true
+				}
+				return show
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	.page {
+		background-color: #f1f1f1;
+		position: relative;
+		min-height: 100vh;
+		z-index: 0;
+	}
+
+	.mescroll-uni {
+		padding-top: var(--status-bar-height);
+	}
+
+	.flex {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.bg-box {
+		background-image: url('@/static/image/home/bg.png');
+		background-size: contain;
+		background-position: 0 -50px;
+		background-repeat: no-repeat;
+		background-color: #f1f1f1;
+	}
+
+	// 背景图
+	.bg-image-box {
+		width: 100vw;
+		height: calc(100vw / 1.7814);
+		position: absolute;
+		transition: all .3s ease-in;
+		z-index: 0;
+		top: -50px;
+
+		>image {
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	// 背景图
+	.bg-color {
+		position: absolute;
+		top: 0;
+		z-index: 0;
+		width: 100vw;
+		height: 30vh;
+		background-color: $uni-color-primary;
+	}
+
+	// 搜索栏
+	.search-box {
+		background-color: $uni-color-primary;
+		position: sticky;
+		top: -1rpx;
+		z-index: 10;
+		.search-mask{
+			position: absolute;
+			z-index: 2;
+			width: calc(100% - 42px);
+			height: 100%;
+		}
+	}
+
+	/deep/.search-bar {
+		width: calc(100% - 86rpx);
+		background-color: $uni-color-primary;
+		padding: 16rpx 0 16rpx 16rpx;
+
+		>.uni-searchbar__box {
+			justify-content: left;
+			height: 68rpx;
+			border-color: $uni-color-primary;
+
+			>.uni-searchbar__text-placeholder {
+				margin-left: 0px;
+			}
+		}
+	}
+
+	.xiaoxi {
+		padding: 0px 21rpx 0px 21rpx;
+		position: relative;
+	}
+
+	.new-message:after {
+		content: '';
+		position: absolute;
+		background-color: #ce2c1e;
+		width: 16rpx;
+		height: 16rpx;
+		border-radius: 50%;
+		right: 16rpx;
+	}
+
+	// 搜索栏
+	// 入库 签到 出库
+	.in-out-box {
+		width: 60%;
+		// width: 45%;
+		margin: 30rpx auto;
+		position: relative;
+		z-index: 1;
+
+		>view {
+			display: flex;
+			align-items: center;
+			flex-direction: column;
+		}
+
+		image {
+			width: 52rpx;
+			height: 52rpx;
+		}
+
+		text {
+			margin-top: 6rpx;
+			font-size: 22rpx;
+			font-family: PingFang SC;
+			font-weight: bold;
+			color: #FFFFFF;
+		}
+	}
+
+	// 入库 签到 出库
+	// 顶部banner图
+	.uni-padding-wrap {
+		margin-bottom: 15rpx;
+	}
+
+	.swiper-top-image {
+		width: 100%;
+		height: 100%;
+	}
+
+	.active {
+		width: calc(100% - 40rpx) !important;
+		padding: 0 20rpx;
+		border-radius: 16rpx;
+	}
+
+	.no-ative {
+		height: calc(100% - 20rpx) !important;
+		margin: 10rpx 0;
+		padding: 0;
+	}
+
+	// 顶部banner图
+	// 限时秒杀
+	.seckill-box {
+		width: calc(100% - 40rpx);
+		height: 180rpx;
+		margin: 0 auto 15rpx;
+
+		>image {
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	.zkfont.red {
+		color: $uni-color-primary;
+	}
+
+	.zkfont-box {
+		transform: skewX(7deg) scaleX(0.8) translateX(-10px)
+	}
+
+	.hot {
+		position: relative;
+		left: -14px;
+		top: -2px
+	}
+
+	// 限时秒杀
+	// 品类
+	.category-box {
+		width: calc(100% - 40rpx);
+		background-color: #fff;
+		margin: 0 auto 20rpx auto;
+		padding: 30rpx 0rpx 10rpx;
+		align-items: center;
+		box-shadow: 0px 6px 26px 0px rgba(123, 71, 46, 0.05);
+		border-radius: 5px;
+		overflow-y: scroll;
+		display: -webkit-flex;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		&::-webkit-scrollbar{
+			 display: none;
+		}
+	}
+	
+	.category-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: 25%;
+		margin-bottom: 20rpx;
+
+		>text {
+			width: 86%;
+			margin-top: 10rpx;
+			font-size: 24rpx;
+			font-family: PingFang SC;
+			font-weight: bold;
+			color: #1C1C1C;
+			height:20px;
+			overflow:hidden;
+			text-align: center;
+		}
+	}
+
+	.category-item:nth-child(4n) {
+		margin-right: 0;
+	}
+
+	// 品类
+	// 热销产品
+	.hot-product {
+		width: calc(100% - 80rpx);
+		background-color: #fff;
+		margin: 0 auto 10rpx auto;
+		padding: 20rpx;
+
+		.hot-left {
+			display: flex;
+			align-items: center;
+			height: 28rpx;
+
+			text:nth-child(1) {
+				margin-right: 4rpx;
+			}
+
+			text {
+				font-family: HYYaKuHeiW;
+				font-weight: 400;
+				font-style: italic;
+			}
+		}
+
+		.hot-right {
+			display: flex;
+			align-items: center;
+			font-size: 22rpx;
+			font-weight: 500;
+			color: $uni-color-primary;
+		}
+	}
+
+	// 热销产品
+	// 底部banner图
+	.bottom-banner {
+		width: calc(100% - 40rpx);
+		height: 250rpx;
+		margin: 20rpx auto;
+
+		>image {
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	// 底部banner图
+	// 底部产品列表
+	.product-list {
+		width: calc(100% - 40rpx);
+		margin: 0 auto;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+
+		.product-item {
+			background-color: #ffffff;
+		}
+
+		.product-info {
+			padding: 25rpx 15rpx;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.product-info-top {
+			display: flex;
+			flex-direction: column;
+		}
+
+		// 名称
+		.product-name {
+			line-height: 28rpx;
+			font-size: 26rpx;
+			font-weight: bold;
+			color: #1C1C1C;
+			overflow: hidden;
+			-webkit-line-clamp: 2;
+			text-overflow: ellipsis;
+			display: -webkit-box;
+			-webkit-box-orient: vertical;
+			margin-bottom: 10rpx;
+			height: 56rpx;
+		}
+
+		// 品牌
+		.product-brand {
+			line-height: 20rpx;
+			font-size: 20rpx;
+			font-weight: 400;
+			color: #666666;
+			margin-bottom: 20rpx;
+		}
+
+		// 价格
+		.product-price {
+			line-height: 18rpx;
+			font-size: 20rpx;
+			font-weight: bold;
+			color: $uni-color-primary;
+		}
+
+		// 一列样式
+		.one-item {
+			width: calc(100vw - 40rpx);
+			margin-bottom: 10rpx;
+			box-shadow: 0px 6px 26px 0px rgba(123, 71, 46, 0.05);
+			border-radius: 5px;
+			display: flex;
+
+			.product-image {
+				height: calc(100vw / 3 - 50rpx);
+				width: calc(100vw / 3 - 50rpx);
+				padding: 25rpx;
+
+				::v-deep .fr_img_content {
+					position: relative;
+				}
+			}
+
+			.product-full-image {
+				width: calc(100vw - 40rpx);
+				height: calc((100vw - 40rpx) * 0.35);
+			}
+
+			.product-info {
+				width: calc(66.6vw - 40rpx - 10rpx - 30rpx);
+				padding: 25rpx 25rpx 25rpx 0;
+				justify-content: space-between;
+			}
+		}
+
+		// 两列样式
+		.two-item {
+			width: calc((100vw - 40rpx - 10rpx) / 2);
+			margin-bottom: 10rpx;
+			box-shadow: 0px 6px 26px 0px rgba(123, 71, 46, 0.05);
+			border-radius: 5px;
+
+			.product-image {
+				height: calc((100vw - 40rpx - 10rpx) / 2 - 40rpx);
+				width: calc((100vw - 40rpx - 10rpx) / 2 - 40rpx);
+				padding: 20rpx;
+
+				::v-deep .fr_img_content {
+					position: relative;
+				}
+			}
+
+			.product-full-image {
+				width: calc((100vw - 40rpx - 10rpx) / 2);
+				height: calc((100vw - 40rpx - 10rpx) / 2);
+				border-radius: 10rpx;
+			}
+
+			.product-info {
+				padding: 0 20rpx 20rpx 20rpx;
+			}
+		}
+
+		// 三列样式
+		.three-item {
+			width: calc((100vw - 40rpx - 20rpx)/3);
+			margin-bottom: 10rpx;
+			box-shadow: 0px 6px 26px 0px rgba(123, 71, 46, 0.05);
+			border-radius: 5px;
+
+			.product-image {
+				height: calc((100vw - 40rpx - 20rpx)/3 - 30rpx);
+				width: calc((100vw - 40rpx - 20rpx)/3 - 30rpx);
+				padding: 15rpx;
+
+				::v-deep .fr_img_content {
+					position: relative;
+				}
+			}
+
+			.product-full-image {
+				width: calc((100vw - 40rpx - 20rpx)/3);
+				height: calc(((100vw - 40rpx - 20rpx) / 3) * 1.59);
+			}
+
+			.product-info {
+				padding: 0 15rpx 15rpx 15rpx;
+			}
+		}
+	}
+
+	// 底部产品列表
+</style>

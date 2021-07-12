@@ -1,0 +1,131 @@
+.lotus-address-picker {
+  font-size: 26rpx;
+  padding-top: 30rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  line-height: normal;
+  padding-right: 30rpx;
+  box-sizing: border-box;
+	/* #ifdef APP-NVUE */
+  font-size: 13px;
+  padding-top: 15px;
+  padding-right: 15px;
+	/* #endif */
+}
+.lotus-address-picker-box {
+  /*display: -webkit-box;
+  display: -webkit-flex;*/
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-start;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.lotus-address-picker-box-item {
+  height:300px;
+  overflow-y: auto;
+  padding-left: 10px;
+  padding-right: 10px;
+  box-sizing: border-box;
+}
+.lotus-address-picker2 {
+  color: #e93b3d;
+  position: relative;
+}
+.lotus-address-picker2:after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 65%;
+  transform: translateY(-35%) rotate(-45deg);
+  width: 10px;
+  height: 5px;
+  border-left-width: 2px;
+  border-bottom-width: 2px;
+  border-left-style: solid;
+  border-bottom-style: solid;
+  border-left-color: #e93b3d;
+  border-bottom-color: #e93b3d;
+	/* #ifdef APP-NVUE */
+  top:21px;
+	/* #endif */
+}
+.lotus-address-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.lotus-address-box {
+	background-color: #fff;
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	z-index: 1000;
+	padding-bottom:constant(safe-area-inset-bottom);
+	padding-bottom:env(safe-area-inset-bottom);
+}
+.lotus-address-action {
+  font-size: 28rpx;
+  /*display: -webkit-box;
+  display: -webkit-flex;*/
+  display: flex;
+  align-items: center;
+	flex-direction: row;
+  justify-content: center;
+  justify-content: space-between;
+  padding: 25rpx 30rpx;
+  position: relative;
+	/* #ifdef APP-NVUE */	
+  font-size: 14px;
+  padding: 12px 15px;
+	border-bottom-width:1px;
+	border-bottom-style:solid;
+	border-bottom-color:#eee;
+	/* #endif */
+}
+.lotus-address-action-cancel{
+	/* #ifdef APP-NVUE */
+		font-size: 14px;
+	/* #endif */
+}
+.lotus-address-action-affirm{
+	/* #ifdef APP-NVUE */
+		font-size: 14px;
+	/* #endif */
+}
+.lotus-address-action:after {
+  content: " ";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: 1px;
+  border-top: 1px solid #eee;
+  color: #eee;
+  transform-origin: 0 0;
+  transform: scaleY(0.5);
+}
+.lotus-address-action:before {
+  content: " ";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  height: 1px;
+  border-bottom: 1px solid #eee;
+  color: #eee;
+  transform-origin: 0 100%;
+  transform: scaleY(0.5);
+}
+.lotus-address-action-cancel {
+  color: #969696;
+}
+.lotus-address-action-affirm {
+  color: #e93b3d;
+}

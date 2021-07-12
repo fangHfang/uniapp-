@@ -1,0 +1,665 @@
+<template>
+	<view class="page">
+		<view class="bg-color"></view>
+		<!-- 电池条 -->
+		<view id="topBar" class="status-bar-placeholder" />
+		<mescroll-uni
+			ref="mescrollRef" 
+			@init="mescrollInit" 
+			class="mescroll-uni"
+			:top="pageOptions.mescrollTop" 
+			:bottom="pageOptions.mescrollBottom" 
+			:down="downOption"
+			:up="upOption"
+			safearea
+			@down="downCallback"
+			>
+			<view class="content-box">
+				<view class="header">
+					<view class="personal flex a-center j-space-between">
+						<view class="info-left flex a-center j-center">
+							<view class="head-portrait">
+								<image src="../../../static/image/community/avatar.png" mode="widthFix"></image>
+							</view>
+							<view class="company-box flex a-center j-center" style="width: 54vw;justify-content: flex-start;">
+								<picker mode="selector"
+									style="max-width: calc(100% - 36rpx);"
+									@change="bindPickerChange" 
+									@click="checkPower" 
+									:disabled="!resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0601'})"
+									:value="storeIndex" 
+									range-key="customerName" 
+									:range="storeList">
+									<view class="uni-input" v-if="storeList && storeList.length > 0">{{storeList[storeIndex].customerName}}</view>
+									<view class="uni-input" v-else></view>
+									<view class="uni-input" style="font-size: 28rpx;" v-if="storeList && storeList.length > 0">{{storeList[storeIndex].storeRefNo}}</view>
+									<view class="uni-input" v-else></view>
+								</picker>
+								<image src="../../../static/image/my/qiehuan.png" style="width: 26rpx;height: 26rpx;"></image>
+							</view>
+							
+						</view>
+						<view class="info-right flex a-center j-center" @click="toAddress">
+							<image src="../../../static/image/my/dizhi.png" mode="widthFix"></image>
+							<text class="address-text">收货地址</text>
+						</view>
+					</view>
+					<view class="header-tab flex a-center j-space-between">
+						<view class="item-tab" @click="toCoupon">
+							<view class="tab-num">{{couponNumber}}</view>
+							<view class="tab-name">优惠券(张)</view>
+						</view>
+						<view class="item-tab" @click="exchangePoint">
+							<view class="tab-num">{{exchangeNum > 99 ? 99 : exchangeNum}}<text v-if="exchangeNum > 99" 
+							style="font-size: 12px;position: relative;bottom: 4px;">+</text></view>
+							<view class="tab-name">兑换点(类)</view>
+						</view>
+						<view class="item-tab" @click="toIntegral">
+							<view class="tab-num">{{integralInfo.currentlyAvailableAmount}}</view>
+							<view class="tab-name">积分数量</view>
+						</view>
+						<view class="item-tab">
+							<view class="tab-num" @click="toRebate">{{rebateInfo.currentlyAvailableAmount}}</view>
+							<view class="tab-name">新玛元</view>
+						</view>
+						<view class="item-tab" @click="toLimit">
+							<view class="tab-num">{{whiteBarInfo.currentAmount}}</view>
+							<view class="tab-name">可用额度</view>
+						</view>
+						<view class="item-tab" @click="toWallet">
+							<view class="flex a-center j-center">
+								<image src="../../../static/image/my/qianbao.png" mode="widthFix"></image>
+							</view>
+							<view class="tab-name">我的钱包</view>
+						</view>
+					</view>
+				</view>
+				<view class="container-tips flex a-center j-space-between">
+					<view class='section-item' @click='onNavigatorMemberOrder(1)'>
+						<view class='section-icon'>
+							<image src="../../../static/image/my/daifukuan.png" mode="heightFix"></image>
+							<text v-if="waitPayNumber > 0" class="obligation">{{waitPayNumber}}</text>
+						</view>
+						<text class='section-text'>待付款</text>
+					</view>
+					<view class='section-item' @click='onNavigatorMemberOrder(2)'>
+						<view class='section-icon'>
+							<image src="../../../static/image/my/daishouhuo.png" mode="heightFix"></image>
+						</view>
+						<text class='section-text'>待收货</text>
+					</view>
+					<view class='section-item' @click='onNavigatorMemberOrder(3)'>
+						<view class='section-icon'>
+							<image src="../../../static/image/my/quxiao.png" mode="heightFix"></image>
+						</view>
+						<text class='section-text'>取消</text>
+					</view>
+					<view class='section-item' @click='onNavigatorMemberOrder(4)'>
+						<view class='section-icon'>
+							<image src="../../../static/image/my/wancheng.png" mode="heightFix"></image>
+						</view>
+						<text class='section-text'>已完成</text>
+					</view>
+					<view class='section-item' @click='onNavigatorMemberOrder(0)'>
+						<view class='section-icon'>
+							<image src="../../../static/image/my/dingdan.png" mode="heightFix"></image>
+						</view>
+						<text class='section-text'>全部订单</text>
+					</view>
+				</view>
+				<view class="container">
+					<view class="item-container" @click="toMall">
+						<view class="item-container-left">
+							<image src="../../../static/image/my/jifen.png" class="img"></image>
+							<view class="item-container-name">积分商城</view>
+						</view>
+						<icon class="iconfont right item-container-right" type=""></icon>
+					</view>
+					<view class="item-container" @click="toReserve">
+						<view class="item-container-left">
+							<image src="../../../static/image/my/yudingshangpin.png" class="img"></image>
+							<view class="item-container-name">预定商品</view>
+						</view>
+						<icon class="iconfont right item-container-right" type=""></icon>
+					</view>
+					<view class="item-container" @click="toActivity">
+						<view class="item-container-left">
+							<image src="../../../static/image/my/huodongdingdan.png" class="img"></image>
+							<view class="item-container-name">活动订单</view>
+						</view>
+						<icon class="iconfont right item-container-right" type=""></icon>
+					</view>
+					<view class="item-container" @click="toIntegralOrder">
+						<view class="item-container-left">
+							<image src="../../../static/image/my/jifendingdan.png" class="img"></image>
+							<view class="item-container-name">积分订单</view>
+						</view>
+						<icon class="iconfont right item-container-right" type=""></icon>
+					</view>
+					<view class="item-container" @click="toContract">
+						<view class="item-container-left">
+							<image src="../../../static/image/my/hetong.png" class="img"></image>
+							<view class="item-container-name">签约管理</view>
+						</view>
+						<icon class="iconfont right item-container-right" type=""></icon>
+					</view>
+					<view class="item-container" @click="toStaff">
+						<view class="item-container-left">
+							<image src="../../../static/image/my/yuangong.png" class="img"></image>
+							<view class="item-container-name">员工管理</view>
+						</view>
+						<icon class="iconfont right item-container-right" type=""></icon>
+					</view>
+					<view class="item-container" @click="toSystem">
+						<view class="item-container-left">
+							<image src="../../../static/image/my/xitong.png" class="img"></image>
+							<view class="item-container-name">系统</view>
+						</view>
+						<icon class="iconfont right item-container-right" type=""></icon>
+					</view>
+				</view>
+			</view>
+		</mescroll-uni>
+		<yu-toast
+			:message1="powerData.msg1"
+			:message2="powerData.msg2"
+			:duration="powerData.duration"
+			verticalAlign="center"
+			:backgroundColor="powerData.bgColor"
+			:color="powerData.fontColor"
+			ref="power"
+		></yu-toast>
+	</view>
+</template>
+
+<script>
+	import { mapState } from 'vuex'
+	import yuToast from '@/components/yu-toast/yu-toast'
+	export default {
+		name: 'my',
+		components: {},
+		data() {
+			return {
+				// 下拉刷新组件实例
+				mescroll: null,
+				// 下拉刷新配置项
+				downOption:{
+					auto:false,
+					textColor:'#fff'
+				},
+				upOption:{
+					// 禁止分页加载
+					use:false
+				},
+				// 页面配置
+				pageOptions: {
+					// 适配刘海屏
+					mescrollTop:0,
+					mescrollBottom:100,
+				},
+				// 权限提示
+				powerData:{
+					msg1:'您没有权限,',
+					msg2:'请开通相应权限。',
+					duration:2000,
+					bgColor:"#000000cc",
+					fontColor:"#ed6d00",
+				},
+			}
+		},
+		computed: {
+			...mapState({
+				// 积分
+				integralInfo: state => state.login.integralInfo,
+				// 返利(新玛元)
+				rebateInfo: state => state.login.rebateInfo,
+				// 白条
+				whiteBarInfo: state => state.login.whiteBarInfo,
+				// 优惠券数量
+				couponNumber:state => state.login.couponNumber,
+				// 待付款订单数量
+				waitPayNumber:state => state.login.waitPayNumber,
+				// 门店集合
+				storeList:state => state.login.storeList,
+				// 门店选中下标
+				storeIndex:state => state.login.storeIndex,
+				// 兑换点种类数量
+				exchangeNum:state => state.login.exchangeType,
+				// 权限集合
+				resourceList: state => state.login.resourceList
+			}),
+		},
+		onLoad() {},
+		mounted() {
+			this.countTopBar()
+		},
+		methods: {
+			/**
+			 * 计算顶部DOM元素节点
+			 */
+			async countTopBar(){
+				const searchBarHeight = await this.$getComponentsDom('#topBar');
+				this.pageOptions.mescrollTop = searchBarHeight.bottom+'px'	
+			},
+			/**
+			 * 初始化回调方法
+			 * @param {Object} mescroll
+			 */
+			mescrollInit(mescroll) {
+				this.mescroll = mescroll
+			},
+			/**
+			 * 下拉刷新回调
+			 */
+			downCallback(e) {
+				this.$store.dispatch('login/updateUserInfo').then(()=>{
+					this.mescroll.endSuccess();
+				}).catch(()=>{
+					this.mescroll.endSuccess();
+				})
+			},
+			/**
+			 * 打开收货地址
+			 */
+			toAddress() {
+				// 地址管理权限-STOREAPPA0611
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0611'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url:'/pages/my-pages/address/list'
+				})
+			},
+			/**
+			 * 切换门店
+			 */
+			bindPickerChange(e) {
+				
+				// 不改变值直接return
+				if(e.target.value === this.storeIndex){
+					return
+				}
+				const {operatorNo,userNo} = this.storeList[e.target.value]
+				let postData = {
+					operatorNo,
+					userNo
+				}
+				this.$store.dispatch('login/changeStore',{postData,index:e.target.value}).then(()=>{
+					this.$emit('changeStore')
+				})
+			},
+			/**
+			 * 打开到设置页
+			 */
+			toSystem(){
+				// 系统权限-STOREAPPA0610
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0610'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/my-pages/system/system'
+				})
+			},
+			/**
+			 * 打开门店合同管理，即签约管理列表页面
+			 */
+			toContract(){
+				// 门店合同管理权限-STOREAPPA0608
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0608'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/my-pages/contract/contract'
+				})
+			},
+			/**
+			 * 打开积分商城列表页面
+			 */
+			toMall(){
+				// 积分商城权限-STOREAPPA0604
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0604'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/my-pages/mall/mall'
+				})
+			},
+
+			/**
+			 * 去我的钱包页面
+			 */
+			toWallet(){
+				// 我的钱包权限-STOREAPPA0603
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0603'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/my-pages/wallet/wallet'
+				})
+			},
+			
+			/**
+			 * 跳转额度
+			 */
+			toLimit(){
+				// 信用额度详情权限-STOREAPPA060301
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA060301'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/my-pages/wallet/quota/quota'
+				})
+			},
+			
+			/**
+			 * 打开查看可用返利
+			 */
+			toRebate() {
+				// 返利明细权限-STOREAPPA060308
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA060308'})){
+					this.$refs.power.show()
+					return
+				}
+				const data=this.$jsonFormat(this.rebateInfo)
+				uni.navigateTo({
+					url: '/pages/my-pages/wallet/rebate/rebate?'+data
+				})
+			},
+			/**
+			 * 打开查看可用积分
+			 */
+			toIntegral() {
+				// 积分明细权限-STOREAPPA060304
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA060304'})){
+					this.$refs.power.show()
+					return
+				}
+				const data=this.$jsonFormat(this.integralInfo)
+				uni.navigateTo({
+					url: '/pages/my-pages/wallet/integral/integral?'+data
+				})
+			},
+			
+			/**
+			 * 打开兑换点页面
+			 */
+			exchangePoint(){
+				// 兑换点列表权限-STOREAPPA060306
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA060306'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/my-pages/exchange/exchange'
+				})
+			},
+
+			/**
+			 * 打开我的订单列表页
+			 */
+			onNavigatorMemberOrder(tabIndex){
+				// 订单列表权限-STOREAPPA0602
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0602'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url: '/pages/my-pages/order/list/order-list?tabIndex=' + tabIndex
+				})
+			},
+
+		    /**
+			 * 打开优惠券管理页面
+			 */
+			toCoupon(){
+				// 优惠券详情权限-STOREAPPA060302
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA060302'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url:'/pages/my-pages/coupon/coupon'
+            	})
+			},
+			/**
+			 * 打开员工管理页面
+			 */
+			toStaff(){
+				// 员工管理权限-STOREAPPA0609
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0609'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url:'/pages/my-pages/staff/staff'
+				})
+			},
+			/**
+			 * 打开积分订单页面
+			 */
+			toIntegralOrder(){
+				// 积分订单权限-STOREAPPA0607
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0607'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url:'/pages/my-pages/integral/list/integral-list'
+				})
+			},
+			/**
+			 * 打开活动订单页面
+			 */
+			toActivity(){
+				// 活动订单权限-STOREAPPA0606
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0606'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url:'/pages/my-pages/activity/list/activity-list'
+				})
+			},
+			/**
+			 * 打开预定商品页面
+			 */
+			toReserve(){
+				// 预定商品权限-STOREAPPA0605
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0605'})){
+					this.$refs.power.show()
+					return
+				}
+				uni.navigateTo({
+					url:'/pages/my-pages/reserve/reserve'
+				})
+			},
+			
+			/**
+			 * 检查权限
+			 */
+			checkPower(){
+				// 门店切换-STOREAPPA0601
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0601'})){
+					this.$refs.power.show()
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.page {
+		background-color: #F2F2F2;
+	
+	}
+	// 背景图
+	.bg-color{
+		position: absolute;
+		top:0;
+		z-index: 0;
+		width:100vw;
+		height:60vh;
+		background-color: $uni-color-primary;
+	}
+	.content-box{
+		  background-image: url('@/static/image/my/bg.jpg');
+		  background-size: contain;
+		  background-position:0 0;
+		  background-repeat: no-repeat;
+		  background-color:#f1f1f1;
+	}
+	.header {
+		width: 100%;
+		height: 205px;
+	}
+	.address-text{
+		font-size:24rpx;
+	}
+	.personal {
+		color: #fff;
+		padding: 0 10px;
+		padding-top: 47px;
+		box-sizing:border-box;
+	}
+
+	.info-left {
+		.head-portrait {
+			width: 61px;
+			height: 61px;
+			border-radius: 50%;
+			margin-right: 4px;
+		}
+
+		.head-portrait image {
+			width: 100%;
+			height: 100%;
+			border-radius: 50%;
+		}
+
+		.company-box {
+			font-size: 16px;
+			image{
+				width: 13px;
+				height: 13px;
+				margin-left: 5px;
+			}
+		}
+	}
+
+	.info-right {
+		font-size: 11px;
+		image{
+			width: 17px;
+			height: 16px;
+			margin-right: 5px;
+		}
+	}
+
+	.header-tab {
+		color: #fff;
+		padding: 25px 10px 0;
+
+		.item-tab {
+			width: calc((100% - 20px) / 5);
+			image{
+				width: 14px;
+				height: 15px;
+			}
+
+			>view {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.tab-num {
+				height: 20px;
+				font-size: 26rpx;
+			}
+
+			.tab-name {
+				height: 20px;
+				font-size: 20rpx;
+			}
+		}
+	}
+
+	.container-tips {
+		width: calc(100% - 20px);
+		height: 76px;
+		margin: -17px 10px 12px;
+		padding-top:10rpx;
+		background-color: #fff;
+		border-radius: 3px;
+		box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.2);
+		.section-item{
+			width: calc((100% - 20px) / 5);
+			text-align: center;
+			.section-icon{
+				position: relative;
+				image{
+					height: 40rpx;
+					width:40rpx;
+				}
+				.obligation{
+					width: 16px;
+					height: 16px;
+					color: #fff;
+					font-size: 8px;
+					position: absolute;
+					top: -10px;
+					right: 10px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					border-radius: 50%;
+					background-color: #FF4322;
+				}
+			}
+			.section-text{
+				color: #252527;
+				font-size: 24rpx;
+				position: relative;
+				top:-6rpx;
+			}
+		}
+	}
+	.container{
+		width: calc(100% - 46px);
+		margin: 0 10px 30px;
+		padding: 13px;
+		background-color: #fff;
+		border-radius: 3px;
+		box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.2);
+		.item-container{
+			height: 52px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			.item-container-left{
+				display: flex;
+				.img{
+					width: 40rpx;
+					height:40rpx;
+					margin-right: 10px;
+				}
+				.item-container-name{
+					color: #252527;
+					font-size: 14px;
+					font-weight: bold;
+				}
+			}
+			.item-container-right{
+				color: #252527;
+				opacity: .62;
+				font-size: 9px;
+			}
+		}
+	}
+</style>

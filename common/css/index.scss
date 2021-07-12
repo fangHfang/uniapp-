@@ -1,0 +1,118 @@
+/*公共样式组件*/
+@font-face{
+	font-family: "HYYaKuHeiW";
+	src: url('/common/css/HYYaKuHeiW.ttf');
+}
+.status-bar-placeholder{
+	height:var(--status-bar-height);
+	background-color: $uni-color-primary;
+}
+input{
+    -webkit-appearance: none;
+}
+.flex{
+	/* #ifndef APP-NVUE */
+	display: flex;
+	/* #endif */
+}
+.w{
+	width:100%;
+}
+.flex.a-center,.a-center{
+	align-items: center;
+}
+.flex.j-start{
+  justify-content:flex-start;
+}
+.flex.j-center{
+  justify-content:center;
+}
+.flex.j-end{
+  justify-content:flex-end;
+}
+.flex.j-space-between{
+  justify-content:space-between;
+}
+.flex-column{
+	flex-direction: column;
+}
+.fixed-buttom-btn{
+		color:#fff;
+		background-color:$uni-color-primary;
+		flex:1;
+		font-size:32rpx;
+		margin-bottom:calc(constant(safe-area-inset-bottom) / 2);
+		margin-bottom:calc(env(safe-area-inset-bottom) / 2);
+}
+.black-skin{
+	background-color:#666;
+}
+
+.fixed-buttom-box{
+	position: fixed;
+	bottom:0;
+	padding:30rpx;
+	box-sizing: border-box;
+	/* #ifndef APP-NVUE */
+	display: flex;
+	/* #endif */
+	align-items: center;
+	justify-content: center;
+	width:100%;
+	background-color:#fff;
+}
+
+.line-btn{
+	border:1px solid $uni-color-primary;
+	color:$uni-color-primary;
+	background-color: rgba(0,0,0,0);
+}
+.btn-primary{
+	padding:20rpx;
+	box-sizing: border-box;
+	/* #ifndef APP-NVUE */
+	display: flex;
+	/* #endif */
+	align-items: center;
+	justify-content: center;
+	width:calc(100vw - 40rpx);
+	background-color:$uni-color-primary;
+	color: #fff;
+	border-radius:calc((100vw - 40rpx) / 2);
+	font-size:32rpx;
+	margin-bottom:calc(constant(safe-area-inset-bottom) / 2);
+	margin-bottom:calc(env(safe-area-inset-bottom) / 2);
+}
+/*模态框*/
+.uni-modal__btn_primary{
+	color:$uni-color-primary !important;
+}
+
+.text-primary{
+	color:$uni-color-primary;
+	font-size:26rpx
+}
+.text-gray{
+	color:$uni-text-color-grey;
+	font-size:26rpx
+}
+.text-normal{
+	font-size:26rpx;
+	color:#333;
+}
+.zkfont{
+	  font-family: 'zcool-gdh' !important;
+	  font-weight: 800;
+	  font-style: normal;
+	  font-size: 22px;
+	  color: #333;
+}
+image{will-change: transform}
+uni-toast{
+	z-index: 9999;
+}
+.uni-picker-container.uni-selector-select{
+	.uni-picker-action.uni-picker-action-confirm{
+		color:$uni-color-primary;
+	}
+}

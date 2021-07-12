@@ -1,0 +1,428 @@
+<template>
+	<view class="page">
+		<view id="topBar">
+			<uni-nav-bar title="欢乐社区" backgroundColor="#ed6d00" color="#fff"></uni-nav-bar>
+			<view style="border-bottom:1px solid #eee">
+				<v-tabs v-model="tabIndex" :tabs="tabs" :scroll="false" :lineScale="0.2" activeColor="#ed6d00" lineColor="#ed6d00"
+				 height="80rpx" fontSize="32rpx" lineHeight="6rpx" @change="changeTab" field="name"></v-tabs>
+			</view>
+		</view>
+		<swiper :style="'height:'+swiperHeight" class="swiper-box" :current="tabIndex" duration="300" @change="swiperChange">
+			<swiper-item v-for="(item,index) in tabs" :key="index" class="swiper-item ">
+				<mescroll-item :ref="'mescrollItem-' + index" :i="index" :index="tabIndex" :tabs="tabs"></mescroll-item>
+			</swiper-item>
+		</swiper>
+
+		<view class="wapper">
+			<view class="container">
+				<view class="menu" :class="animationName">
+					<view class="submenu" @tap="handleLinkSelect('post')">
+						<text class="iconfont shuru"></text>
+						<view class="title">发布帖子</view>
+					</view>
+					<view class="submenu" @tap="handleLinkSelect('history')">
+						<text class="iconfont lishijilu"></text>
+						<view class="title">历史帖子</view>
+					</view>
+					<view class="submenu" @tap="handleLinkSelect('help')">
+						<text class="iconfont wenti-m"></text>
+						<view class="title">帮助中心</view>
+					</view>
+				</view>
+				<view class="btn-box" @tap="handleCollapse" :class="!isCollapse?'more-icon':''">
+					<view class="text">
+						<uni-icons type="more-filled" :color="isCollapse?'#fff':'#ed6d00'" size="22" />
+					</view>
+				</view>
+			</view>
+		</view>
+		<view class="screen-overlay" v-show="!isCollapse" @tap="_close" @touchmove="_close"></view>
+		<yu-toast
+			:message1="powerData.msg1"
+			:message2="powerData.msg2"
+			:duration="powerData.duration"
+			verticalAlign="center"
+			:backgroundColor="powerData.bgColor"
+			:color="powerData.fontColor"
+			ref="power"
+		></yu-toast>
+	</view>
+</template>
+
+<script>
+	import {mapState} from 'vuex'
+	import yuToast from '@/components/yu-toast/yu-toast'
+	import vTabs from "@/components/v-tabs/v-tabs.vue";
+	import MescrollItem from "./mescroll-swiper-item.vue";
+	export default {
+		name: 'community',
+		components: {
+			vTabs,
+			MescrollItem
+		},
+		data() {
+			return {
+				// 下拉刷新组件实例
+				mescroll: null,
+				// tabs
+				tabs: [{
+					name: '资讯',
+					status: 0
+				}, {
+					name: '社区',
+					status: 1
+				}],
+				// tabs下标
+				tabIndex: 0,
+				isCollapse: true,
+				animationName: '',
+				swiperHeight: 'calc(100% - 84px - var(--status-bar-height))',
+				// 权限提示
+				powerData:{
+					msg1:'您没有权限,',
+					msg2:'请开通相应权限。',
+					duration:2000,
+					bgColor:"#000000cc",
+					fontColor:"#ed6d00",
+				},
+			}
+		},
+		computed: {
+			...mapState({
+				// 权限集合
+				resourceList: state => state.login.resourceList
+			}),
+		},
+		mounted() {
+			this.countTopBar()
+		},
+		methods: {
+			/**
+			 * 计算顶部DOM元素节点
+			 */
+			async countTopBar() {
+				const topBar = await this.$getComponentsDom('#topBar')
+				this.swiperHeight = `calc(100% - ${topBar.height}px)`
+			},
+			/**
+			 * tab切换事件
+			 */
+			changeTab(index) {
+				this.tabIndex = index;
+			},
+			/**
+			 * swipe切换事件
+			 * @param {Object} e
+			 */
+			swiperChange(e) {
+				let {
+					current
+				} = e.target;
+				this.tabIndex = current;
+			},
+			/**
+			 * 选中跳转
+			 * @param {Object} mark
+			 */
+			handleLinkSelect(mark) {
+				let path = ''
+				if (mark === 'post') {
+					path = '/pages/community/post/post?articleType=' + this.tabs[this.tabIndex].status
+				} else if (mark === 'history') {
+					path = '/pages/community/history/list/list'
+				} else if (mark === 'help') {
+					path = '/pages/community/help/list/list'
+				}
+				setTimeout(() => {
+					this._close()
+				}, 0);
+				uni.navigateTo({
+					url: path
+				})
+			},
+			/**
+			 * 点击按钮
+			 */
+			handleCollapse() {
+				// 更多权限-STOREAPPA0502
+				if(!this.resourceList.some((item)=>{return item.resourceNo === 'STOREAPPA0502'})){
+					this.$refs.power.show()
+					return
+				}
+				this.isCollapse = !this.isCollapse,
+					this.animationName = this.animationName === 'on' ? 'off' : 'on'
+			},
+
+			/**
+			 * 关闭
+			 */
+			_close() {
+				this.isCollapse = true
+				this.animationName = 'off'
+			},
+			
+			/**
+			 * 切换门店后重置请求
+			 */
+			refresh(){
+				this.$refs['mescrollItem-0'][0].downCallback()
+				this.$refs['mescrollItem-1'][0].downCallback()
+			}
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	// swpier
+	.swiper-box {
+		background-color: #F2F2F2;
+	}
+
+	.swiper-item {
+		background-color: #F2F2F2;
+	}
+
+	// swpier
+	// 发帖
+	.post-box {
+		position: fixed;
+		right: 10rpx;
+		bottom: 210rpx;
+		bottom: calc(210rpx + constant(safe-area-inset-bottom));
+		bottom: calc(210rpx + env(safe-area-inset-bottom));
+		width: 62rpx;
+		height: 62rpx;
+
+		>image {
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	// 发帖
+	// 帮助
+	.bangzhu-box {
+		position: fixed;
+		right: 10rpx;
+		bottom: 135rpx;
+		bottom: calc(135rpx + constant(safe-area-inset-bottom));
+		bottom: calc(135rpx + env(safe-area-inset-bottom));
+		width: 62rpx;
+		height: 62rpx;
+
+		>image {
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	// 帮助
+
+	.wapper {
+		position: absolute;
+		position: fixed;
+		z-index: 99999999;
+		right: 15px;
+		bottom: 100px;
+		width: 72rpx;
+		height: 72rpx;
+		color: #fff;
+		border-radius: 50%;
+		box-shadow: 0 3px 8px 0 rgba(28, 159, 130, 0.2);
+		font-size: 24rpx;
+	}
+
+	.container {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+	}
+
+	.container .btn-box {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		transition: background 0.3s;
+		border-radius: 50%;
+		background: #ed6d00;
+		box-sizing: border-box;
+
+		&.more-icon {
+			background: #fff;
+			border: 1px solid #ed6d00;
+		}
+	}
+
+	.container .btn-box:active {
+		background: #fd330f;
+	}
+
+	.container .btn-box .iconfont {
+		font-size: 60rpx;
+	}
+
+	.container .btn-box .badge {
+		position: absolute;
+		top: -13rpx;
+		right: -13rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 38rpx;
+		padding: 0 12rpx;
+		white-space: nowrap;
+		color: #fff;
+		border: thin solid #fff;
+		border-radius: 10em;
+		background: #000;
+		background-color: #f0934e;
+		font-size: 20rpx;
+	}
+
+	.container .menu {
+		position: absolute;
+		right: 0;
+		bottom: 90rpx;
+		width: 240rpx;
+		padding: 16rpx 0;
+		transform: scale(0, 0);
+		transform-origin: 85% 115%;
+		animation-duration: 0.3s;
+		animation-timing-function: linear;
+		color: #000;
+		border-radius: 6px;
+		background: #fff;
+		box-shadow: 0 3px 8px 0 rgba(0, 0, 0, 0.2);
+		animation-fill-mode: forwards;
+	}
+
+	.container .menu.off {
+		animation-name: off;
+	}
+
+	.container .menu.on {
+		animation-name: on;
+	}
+
+	.container .menu::after {
+		position: absolute;
+		right: 12px;
+		bottom: -10rpx;
+		display: block;
+		overflow: hidden;
+		width: 0;
+		height: 0;
+		content: "";
+		border-top: 12rpx solid #fff;
+		border-right: 12rpx solid transparent;
+		border-bottom: none;
+		border-left: 12rpx solid transparent;
+		font-size: 0;
+		line-height: 0;
+	}
+
+	.container .menu .submenu {
+		position: relative;
+		display: flex;
+		align-items: center;
+		box-sizing: border-box;
+		height: 72rpx;
+		margin-right: 20rpx;
+		margin-left: 20rpx;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		border-bottom: thin solid #eee;
+		font-size: 24rpx;
+
+		.iconfont {
+			color: #ed6d00;
+		}
+	}
+
+	.container .menu .submenu:active {
+		transform: translate(1px, 1px);
+	}
+
+	.container .menu .submenu .iconfont {
+		display: flex;
+		align-items: center;
+		flex: 0 0 30rpx;
+		justify-content: center;
+		width: 30rpx;
+		margin-right: 22rpx;
+		margin-left: 12rpx;
+		font-size: 36rpx;
+	}
+
+	.container .menu .submenu .title {
+		position: relative;
+		flex: 1;
+	}
+
+	.container .menu .submenu .badge-box {
+		display: flex;
+		display: inline-flex;
+		flex: 1;
+	}
+
+	.container .menu .submenu .badge {
+		position: relative;
+		top: -13rpx;
+		display: flex;
+		display: flex;
+		align-items: center;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		height: 38rpx;
+		padding: 0 12rpx;
+		white-space: nowrap;
+		color: #fff;
+		border: thin solid #fff;
+		border-radius: 10em;
+		background: #000;
+		background-color: #f0934e;
+		font-size: 20rpx;
+	}
+
+	@keyframes on {
+		0% {
+			transform: scale(0, 0);
+		}
+
+		100% {
+			transform: scale(1, 1);
+		}
+	}
+
+	@keyframes off {
+		0% {
+			transform: scale(1, 1);
+		}
+
+		100% {
+			transform: scale(0, 0);
+		}
+	}
+
+	/* 全屏蒙版 */
+	.screen-overlay {
+		position: fixed;
+		z-index: 9999999;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		height: 100vh;
+		background: transparent;
+	}
+
+	.hiddenEle {
+		display: none;
+	}
+</style>

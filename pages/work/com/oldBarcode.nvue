@@ -1,0 +1,471 @@
+<template>
+	<view class="page">
+
+		<barcode 
+			id='barcode' 
+			class="barcode" 
+			:style="pageStyle" 
+			autostart="true" 
+			ref="barcode" 
+			frameColor="#ed6d00"
+			scanbarColor="#ed6d00" 
+			:filters="fil" 
+			@marked="success" 
+			@error="fail" />
+
+		<view class="nav-bar" :style="navStyle">
+			<text class="ziconfont nav-bar-icon left-icon" style="color: #FFFFFF;" @click="toBack">&#xe602;</text>
+			<text class="nav-title">{{info.name}}</text>
+			<text v-if="info.rightIconUrl" class="ziconfont nav-bar-icon right-icon" @click="toUrl(info.rightIconUrl)">&#xe605;</text>
+		</view>
+
+		<view class="font-box" :style="fontBoxStyle">
+			<text :class="flash ? 'shandian icon ziconfont':'jingyongshandian icon ziconfont' " @click="toFlash">{{flash ? "&#xe61b;":"&#xe8a7;"}}</text>
+			<text class="font">{{info.dec}}</text>
+			<text class="font-red" v-if="info.mark!=='phone'" @click="confirmDialog">手动输入条码</text>
+		</view>
+
+		<!-- 手动输入编码核销弹窗 -->
+		<!-- 提交信息 -->
+		<uni-popup ref="dialogInput" type="dialog">
+			<uni-popup-dialog mode="input" title="手动输入条码" value="" placeholder="请输入" @confirm="dialogInputConfirm"></uni-popup-dialog>
+		</uni-popup>
+
+	</view>
+</template>
+
+<script>
+	// nuve icon 得用这种方式引入
+	import fontFace from '@/common/utils/iconfont.js'
+	import permision from "@/common/utils/permission.js"
+	export default {
+		async onLoad(option) {
+			const { ...a } = option
+			this.info = a
+			// #ifdef APP-PLUS
+			await this.getLocation()
+			// #endif
+		},
+		components: {},
+		data() {
+			return {
+				// 扫码页面显示信息
+				info: {},
+				// 条码类型过滤器 QR: QR二维码，数值为0 ，EAN8: ENA条形码简版，数值为2 ，EAN13: EAN条形码标准版，数值为1
+				// 更多类型 参考文档 https://uniapp.dcloud.io/component/barcode?id=barcode
+				fil: [0,10],
+				// 闪光灯
+				flash: false,
+				// 手动输入条码信息
+				value: null,
+				systemInfo: uni.getSystemInfoSync()
+			}
+		},
+		computed: {
+			// 设置页面宽高
+			pageStyle() {
+				const {
+					windowHeight,
+					windowWidth
+				} = this.systemInfo
+				return `width:${windowWidth}px;height:${windowHeight}px`
+			},
+			// 设置nav宽高
+			navStyle() {
+				const {
+					safeAreaInsets,
+					windowWidth
+				} = this.systemInfo
+				return `width:${windowWidth}px;`
+			},
+			// font-box bottom 位置
+			fontBoxStyle() {
+				const {
+					windowWidth
+				} = this.systemInfo
+				return `width:${windowWidth}px;bottom:${windowWidth/2 - 90}px;`
+			}
+
+		},
+		created() {
+			const domModule = weex.requireModule("dom");
+			domModule.addRule('fontFace', fontFace)
+			// https://ask.dcloud.net.cn/question/113657
+			const uniDomModule = uni.requireNativePlugin('dom')  
+			uniDomModule.addRule('fontFace', fontFace);
+		},
+		mounted() {
+			this.toStart()
+		},
+		destroyed(){
+			this.tocancel()
+		},
+		methods: {
+			/**
+			 * 成功加载扫码
+			 * */
+			success(e) {
+				
+				// 此处判断是否是扫码退货，区分调接口返回，或者跳转页面
+				if (this.info.confirmTo === '/pages/work/return/add') {
+					this.$store.dispatch('work/getRefundProductByCode',{barCode:e.detail.message}).then(()=>{
+						uni.navigateBack({
+							delta: 1
+						})
+					}).catch((err)=>{
+						setTimeout(()=>{
+							//返回并刷新
+							let pages = getCurrentPages();
+							let beforePage = pages[pages.length - 2]
+							uni.navigateBack({
+								delta:1,
+								success: function() {
+									// #ifdef APP-PLUS
+									beforePage.$vm.setRemarkShake()
+									// #endif
+									// #ifndef APP-PLUS
+									beforePage.setRemarkShake()
+									// #endif
+								}
+							});
+						},1500)
+					})
+				}else if (this.info.confirmTo === '/pages/work/delivery/index') {
+					//扫码出库
+					if(this.info.mark==='list'){
+						this.$store.dispatch('work/getOutInfoEaseOrder',{barCode:e.detail.message}).then(()=>{
+							uni.navigateBack({
+								delta: 1
+							})
+						})
+					}else if(this.info.mark==='phone'){
+						console.log(e.detail.message)
+						try{
+							let user=JSON.parse(e.detail.message) || {}
+							this.$store.commit('work/setCarMasterPhone',user)
+							uni.navigateBack({
+								delta: 1
+							})
+						}catch(err){
+							console.log(err)
+							uni.showToast({
+								title:'车主信息有误，扫码失败',
+								icon:'none'
+							})
+							setTimeout(()=>{
+								uni.navigateBack({
+									delta: 1
+								})
+							},500)
+						}
+					}
+				}else if (this.info.confirmTo === '/pages/work/renew/detail/renew-detail') {
+					//扫码出库
+					if(this.info.mark==='list'){
+						this.$store.dispatch('work/getOutInfoRenewOrder',{barCode:e.detail.message}).then(()=>{
+							uni.navigateBack({
+								delta: 1
+							})
+						})
+					}
+				}else{
+					const url = this.info.confirmTo + '?code=' + e.detail.message
+					uni.redirectTo({
+						url
+					})
+					return
+				}
+			},
+			/**
+			 * 加载扫码失败
+			 * */
+			fail(e) {
+				if (this.info.confirmTo) {
+					const url = this.info.confirmTo + '?code=' + e.detail.message
+					uni.redirectTo({
+						url
+					})
+					return
+				}
+			},
+			/**
+			 * 开始扫码识别
+			 * */
+			toStart: function() {
+				this.$refs.barcode.start({
+					conserve: true,
+					filename: '_doc/barcode/'
+				});
+			},
+			/**
+			 * 关闭扫码识别
+			 * */
+			tocancel: function() {
+				this.$refs.barcode.cancel();
+			},
+			/**
+			 * 开启/关闭闪光灯
+			 * */
+			toFlash: function() {
+				this.flash = !this.flash
+				this.$refs.barcode.setFlash(this.flash);
+			},
+
+			/**
+			 * 扫码结果
+			 * */
+			toscan: function() {
+				console.log("scan:");
+				const barcodeModule = uni.requireNativePlugin('barcodeScan');
+				barcodeModule.scan("/static/barcode1.png", (e) => {
+					console.log("scan_error:" + JSON.stringify(e));
+				});
+			},
+			/**
+			 * 打开提交信息
+			 */
+			confirmDialog() {
+				this.$refs.dialogInput.open()
+			},
+			/**
+			 * 输入对话框的确定事件
+			 */
+			dialogInputConfirm(done, val) {
+				const url = this.info.confirmTo
+				this.value = val
+				this.$refs.dialogInput.close()
+				// 扫码页 手动输入条码后 要跳转的指定页面
+				// 此处判断是否是扫码退货，区分调接口返回，或者跳转页面
+				if (this.info.confirmTo === '/pages/work/return/add') {
+					this.$store.dispatch('work/getRefundProductByCode',{barCode:val}).then(()=>{
+						uni.navigateBack({
+							delta: 1
+						})
+					})
+				}else if (this.info.confirmTo === '/pages/work/delivery/index') {
+					//扫码出库
+					this.$store.dispatch('work/getOutInfoEaseOrder',{barCode:val}).then(()=>{
+						uni.navigateBack({
+							delta: 1
+						})
+					})
+				}else if(this.info.confirmTo){
+					const url = this.info.confirmTo + '?code=' + this.value
+					uni.redirectTo({
+						url
+					})
+				}else{
+					// 默认可不传（不传 则navigateBack)
+					uni.navigateBack({
+						delta: 1
+					})
+				}
+				
+			},
+			/**
+			 * 返回上一级页面
+			 */
+			toBack() {
+				uni.navigateBack({
+					delta: 1
+				})
+			},
+			/**
+			 * 右侧按钮点击事件
+			 */
+			toUrl(url){
+				uni.navigateTo({
+					url
+				})
+			},
+
+		async getLocation() {
+				let _this = this
+				return new Promise(async(resolve,reject)=>{
+					// #ifdef APP-PLUS
+					let status = await this.checkPermission();
+					if (status !== 1) {
+							uni.navigateBack({
+								delta: 1
+							})
+							return
+					}
+					// #endif
+					_this.doGetLocation(resolve,reject);
+				})
+					
+			},
+			doGetLocation(resolve,reject) {
+				let that=this
+				// #ifdef APP-PLUS
+				uni.getLocation({
+					success: (res) => {
+						resolve({
+							latitude:res.latitude,
+							longitude:res.longitude
+						})
+					},
+					fail: (err) => {
+						if (err.errMsg.indexOf("auth deny") >= 0) {
+							uni.showToast({
+								icon:'none',
+								title: "访问位置被拒绝"
+							})
+						} else {
+							uni.showToast({
+								title:JSON.stringify(err.errMsg),
+								icon:"none",
+								duration:3000
+							})
+							console.log(err.errMsg)
+						}
+						reject({
+							latitude:0,
+							longitude:0
+						})
+					},
+				})
+				// #endif
+				// #ifdef H5
+				resolve({
+					latitude:31.27537,
+					longitude:121.54367
+				})
+				// #endif
+			},
+			/**
+			 * 判断相机权限
+			 */
+			async checkPermission() {
+				let status = permision.isIOS ? await permision.requestIOS('location') :
+					await permision.requestAndroid('android.permission.ACCESS_FINE_LOCATION');
+			
+				if (status === null || status === 1) {
+					status = 1;
+				} else if (status === 2) {
+					uni.showModal({
+						content: "系统定位已关闭",
+						confirmText: "确定",
+						showCancel: false,
+						success: function(res) {
+						}
+					})
+				} else if (status.code) {
+					uni.showModal({
+						content: status.message
+					})
+				} else {
+					uni.showModal({
+						content: "需要定位权限",
+						confirmText: "设置",
+						success: function(res) {
+							if (res.confirm) {
+								permision.gotoAppSetting();
+							}
+						}
+					})
+				}
+				return status;
+			},
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	/* #ifndef APP-NVUE */
+	@font-face {
+		font-family: ziconfont;
+		src: url('https://at.alicdn.com/t/font_2351283_h62crjq0c2.ttf') format('truetype');
+	}
+	
+	/* #endif */
+	.nav-bar {
+		position: absolute;
+		/* #ifndef APP-NVUE */
+		display: flex;
+		/* #endif */
+		padding: 20rpx;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+		height: 100px;
+		left: 0;
+	}
+
+	.nav-bar-icon {
+		color: #fff;
+		font-size: 24px;
+		padding: 0 10px;
+	}
+
+	.left-icon {
+		position: absolute;
+		left: 0;
+	}
+
+	.right-icon {
+		position: absolute;
+		right: 10px;
+	}
+
+	.nav-title {
+		color: #fff;
+		font-size: 32rpx;
+		text-align: center;
+	}
+
+	.page {
+		position: relative;
+	}
+
+	.font-box {
+		position: absolute;
+		left: 0;
+		right: 0;
+		/* #ifndef APP-NVUE */
+		display: flex;
+		/* #endif */
+		align-items: center;
+		justify-content: center;
+		z-index: 100
+	}
+
+	.ziconfont {
+		font-family: ziconfont;
+	}
+
+	.icon {
+		text-align: center;
+		line-height: 60rpx;
+		color: #fff;
+		font-size: 32rpx;
+		width: 160rpx;
+		height: 60rpx;
+		margin-bottom: 20rpx;
+		border-radius: 80rpx;
+	}
+
+	.shandian {
+		background-color: #ed6d00;
+	}
+
+	.jingyongshandian {
+		background-color: #ddd;
+	}
+
+	.font {
+		color: #fff;
+		margin-bottom: 20rpx;
+		font-size: 24rpx
+	}
+
+	.font-red {
+		color: #ed6d00;
+		font-size: 24rpx;
+		text-decoration: underline;
+	}
+
+	.barcode {
+		border-radius: 20px;
+	}
+</style>

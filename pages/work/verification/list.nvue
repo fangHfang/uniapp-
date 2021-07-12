@@ -1,0 +1,121 @@
+<template>
+	<view class="page">
+		<uni-nav-bar title="扫码核销" left-icon="back" backgroundColor="#ed6d00" color="#fff" @clickLeft="toBack"></uni-nav-bar>
+		<v-tabs 
+			v-model="tabIndex" 
+			:tabs="tabs" 
+			:scroll="false" 
+			:lineScale="0.2"
+			activeColor="#ed6d00"
+			lineColor="#ed6d00"
+			height="88rpx"
+			fontSize="32rpx"
+			lineHeight="4rpx"
+			id="tabs"
+			@change="changeTab"></v-tabs>
+		<swiper 
+			class="swiper-box"
+			:current="tabIndex" 
+			:style="headHeight && `height:calc(100vh - ${headHeight}px)`"
+			duration="300" 
+			@change="swiperChange">
+		  <swiper-item 
+				v-for="(item,index) in tabs" 
+				:key="index"
+				class="swiper-item ">
+				<mescroll-item 
+					ref="mescrollItem" 
+					:i="index" 
+					:index="tabIndex" 
+					:headHeight="headHeight"
+					:tabs="tabs"
+					@toDetail="toDetail"></mescroll-item>
+		  </swiper-item>
+		</swiper>
+	</view>
+</template>
+
+<script>
+	import vTabs from "@/components/v-tabs/v-tabs.vue";
+	import MescrollItem from "./mescroll-swiper-item.vue";
+	export default {
+		name: 'community',
+		components: {
+			vTabs,
+			MescrollItem
+		},
+		data() {
+			return {
+				systemInfo:uni.getSystemInfoSync(),
+				// 下拉刷新组件实例
+				mescroll: null,
+				// tabs
+				tabs: ['未结算','已结算'],
+				// tabs下标
+				tabIndex: 0 ,
+				// swiper 高度
+				headHeight:0
+			}
+		},
+		onLoad() {},
+		mounted() {
+			this.countheadHeight()
+		},
+		methods: {
+			async countheadHeight(){
+				const headHeight = await this.getComponentsDom('tabs')
+				this.headHeight =  headHeight.bottom 
+			},
+			
+			getComponentsDom(id){
+				return new Promise((resolve,reject)=>{
+					let view = uni.createSelectorQuery().in(this).select("#"+id);
+					view.boundingClientRect(data => {
+						resolve(data);
+					}).exec();
+				})
+			},
+			
+			/**
+			 * tab切换事件
+			 */
+			changeTab(index) {
+				this.tabIndex = index;
+			},
+			/**
+			 * swipe切换事件
+			 * @param {Object} e
+			 */
+			swiperChange(e) {
+				let { current } = e.target;
+				this.tabIndex = current;
+			},
+			
+			/**
+			 * 跳转详情页
+			 */
+			toDetail({id,name}){
+				
+			},
+			/**
+			 * 返回上一级页面
+			 */
+			toBack(){
+				uni.navigateBack({
+					delta: 1
+				})
+			},
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	// swpier
+	.swiper-box{
+		background-color: #F2F2F2;
+	}
+	.swiper-item{
+		width: calc(100% - 40rpx)!important;
+		padding: 0 20rpx;
+	}
+</style>
